@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
-import { ThemeSwitcher } from '@/components/theme-switcher';
 
 export default function ProfilePage() {
   return (
@@ -27,10 +26,6 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent>
             <form className="space-y-6">
-              <div className="space-y-2">
-                  <Label>Theme</Label>
-                  <ThemeSwitcher />
-              </div>
               <div className="flex items-center space-x-6">
                 <Avatar className="h-24 w-24">
                   <AvatarImage src="https://placehold.co/100x100" alt="@admin" />

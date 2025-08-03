@@ -4,12 +4,15 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
 import Header from '@/components/dashboard/header';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Edit } from 'lucide-react';
 import { campaigns as initialCampaigns } from '@/lib/data';
 import type { Campaign } from '@/lib/types';
 import AddCampaignDialog from '@/components/dashboard/add-campaign-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ThemeSwitcher } from '@/components/theme-switcher';
+import { Separator } from '@/components/ui/separator';
 
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
@@ -27,6 +30,30 @@ export default function CampaignsPage() {
     <div className="min-h-screen w-full bg-background">
       <Header />
       <main className="p-4 md:p-8">
+
+        <Card className="mb-8 overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div className="flex items-center gap-6">
+                    <Avatar className="h-20 w-20 border-2 border-primary">
+                        <AvatarImage src="https://placehold.co/100x100" alt="@admin" />
+                        <AvatarFallback>A</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <CardTitle className="font-headline text-2xl">Admin User</CardTitle>
+                        <CardDescription className="mt-2 text-base">
+                        Experienced marketing professional dedicated to driving brand growth through strategic influencer collaborations.
+                        </CardDescription>
+                    </div>
+                </div>
+                <Link href="/profile" passHref>
+                    <Button variant="outline" size="icon">
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Edit Profile</span>
+                    </Button>
+                </Link>
+            </CardHeader>
+        </Card>
+
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold font-headline">Campaigns</h1>
           <AddCampaignDialog onAddCampaign={handleAddCampaign} />
@@ -62,6 +89,14 @@ export default function CampaignsPage() {
               </CardFooter>
             </Card>
           ))}
+        </div>
+
+        <Separator className="my-12" />
+
+        <div className="flex flex-col items-center gap-4">
+            <h2 className="text-2xl font-bold font-headline">Appearance</h2>
+            <p className="text-muted-foreground">Customize the look and feel of your dashboard.</p>
+            <ThemeSwitcher />
         </div>
       </main>
     </div>
