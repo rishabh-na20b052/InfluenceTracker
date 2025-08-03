@@ -54,7 +54,7 @@ export default function CampaignSummary({ posts }: CampaignSummaryProps) {
             <div className="text-2xl font-bold">{totalComments.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">Cumulative comments</p>
           </CardContent>
-        </Iphone>
+        </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Influencers</CardTitle>
