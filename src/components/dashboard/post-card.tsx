@@ -15,9 +15,10 @@ import {
   MessageCircle,
   Eye,
   Repeat,
-  MessageSquare,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { utcToZonedTime } from 'date-fns-tz';
+
 
 type PostCardProps = {
   post: Post;
@@ -40,6 +41,10 @@ function formatNumber(num: number): string {
 }
 
 export default function PostCard({ post }: PostCardProps) {
+  const postDate = new Date(post.date);
+  // To avoid hydration errors, we'll format the date in UTC.
+  const zonedDate = utcToZonedTime(postDate, 'Etc/UTC');
+
   return (
     <Card className="overflow-hidden flex flex-col transition-all hover:shadow-lg hover:-translate-y-1">
       <CardHeader className="flex flex-row items-center justify-between p-4">
@@ -48,7 +53,7 @@ export default function PostCard({ post }: PostCardProps) {
           <CardTitle className="text-base font-semibold">{post.influencerHandle}</CardTitle>
         </div>
         <div className="text-xs text-muted-foreground">
-          {format(new Date(post.date), 'dd MMM yyyy')}
+          {format(zonedDate, 'dd MMM yyyy')}
         </div>
       </CardHeader>
       <CardContent className="p-0">
