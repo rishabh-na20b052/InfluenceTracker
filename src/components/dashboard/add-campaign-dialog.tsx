@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle, Upload } from 'lucide-react';
 import type { Campaign } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { getCampaignCover } from '@/lib/image-utils';
 
 type AddCampaignDialogProps = {
   onAddCampaign: (campaign: Omit<Campaign, 'id' | 'postIds'>) => void;
@@ -44,15 +45,19 @@ export default function AddCampaignDialog({ onAddCampaign }: AddCampaignDialogPr
   };
 
   const handleSubmit = () => {
-    if (!name || !description || !coverImageUrl) {
+    if (!name || !description) {
         toast({
           variant: 'destructive',
           title: 'Missing Fields',
-          description: 'Please fill out all fields, including the cover image.',
+          description: 'Please fill out all required fields.',
         });
         return;
     }
-    onAddCampaign({ name, description, coverImageUrl });
+    
+    // Use uploaded image or fallback to deterministic campaign cover
+    const finalCoverImageUrl = coverImageUrl || getCampaignCover(`campaign-${Date.now()}`);
+    
+    onAddCampaign({ name, description, coverImageUrl: finalCoverImageUrl });
     setOpen(false); // Close the dialog
     // Reset fields
     setName('');

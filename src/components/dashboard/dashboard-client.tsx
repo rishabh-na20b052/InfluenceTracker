@@ -14,6 +14,7 @@ import FilterControls from './filter-controls';
 import PostGrid from './post-grid';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Card, CardContent } from '../ui/card';
+import { getImageWithFallback } from '@/lib/image-utils';
 
 type Filters = {
   platform: 'all' | Platform;
@@ -78,7 +79,7 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
            <div className="flex items-center gap-4">
             {isReadOnly ? (
                <Avatar className="h-10 w-10">
-                  <AvatarImage src="/user.png" alt="@admin" />
+                  <AvatarImage src={getImageWithFallback('/user.png', 'admin')} alt="@admin" />
                   <AvatarFallback>A</AvatarFallback>
                 </Avatar>
             ) : (
@@ -95,7 +96,7 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
           {!isReadOnly && (
             <Button onClick={handleShare}>
               <Share2 className="mr-2"/>
-              Share
+              Share Campaign
             </Button>
           )}
         </div>

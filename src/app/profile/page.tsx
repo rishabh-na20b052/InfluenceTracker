@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
+import { getImageWithFallback } from '@/lib/image-utils';
+import Image from 'next/image';
 
 export default function ProfilePage() {
   return (
@@ -27,10 +29,19 @@ export default function ProfilePage() {
           <CardContent>
             <form className="space-y-6">
               <div className="flex items-center space-x-6">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src="/user.png" alt="@admin" />
-                  <AvatarFallback>A</AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  <Image
+                    src={getImageWithFallback('/assets/man_do.jpg', 'admin')}
+                    alt="Profile Picture"
+                    width={300}
+                    height={300}
+                    className="rounded-full object-cover w-64 h-64 border-4 border-primary/20 shadow-2xl"
+                    priority
+                  />
+                  <div className="absolute -bottom-2 -right-2 bg-green-500 rounded-full p-2 border-4 border-background">
+                    <div className="w-4 h-4 bg-green-400 rounded-full animate-pulse"></div>
+                  </div>
+                </div>
                 <Button variant="outline">Change Photo</Button>
               </div>
                <div className="space-y-2">

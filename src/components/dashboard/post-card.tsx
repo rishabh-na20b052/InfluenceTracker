@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
+import { getImageWithFallback } from '@/lib/image-utils';
 
 
 type PostCardProps = {
@@ -59,7 +60,7 @@ export default function PostCard({ post }: PostCardProps) {
       <CardContent className="p-0">
         <a href={post.url} target="_blank" rel="noopener noreferrer">
           <Image
-            src={post.thumbnailUrl}
+            src={getImageWithFallback(post.thumbnailUrl, 'campaign')}
             alt={`Post by ${post.influencer}`}
             width={400}
             height={400}

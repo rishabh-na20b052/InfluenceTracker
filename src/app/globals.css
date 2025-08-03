@@ -117,6 +117,15 @@
     --input: 351 96% 24%;
     --ring: 346.8 77.2% 49.8%;
   }
+
+  /* Custom theme support - higher specificity to override default themes */
+  .custom-theme {
+    /* Custom theme variables will be applied via JavaScript */
+  }
+
+  .custom-theme.dark {
+    /* Dark mode custom theme support */
+  }
 }
  
 @layer base {

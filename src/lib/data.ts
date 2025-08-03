@@ -1,4 +1,5 @@
 import type { Post, Campaign } from './types';
+import { getCampaignCover } from './image-utils';
 
 export const campaigns: Campaign[] = [
   {
@@ -6,14 +7,14 @@ export const campaigns: Campaign[] = [
     name: 'Summer Sale 2024',
     description: 'A campaign to promote our summer collection and boost sales.',
     postIds: ['1', '2', '4'],
-    coverImageUrl: '/campaign-1.png',
+    coverImageUrl: getCampaignCover('summer-sale-2024'),
   },
   {
     id: 'product-launch-q3',
     name: 'Product Launch Q3',
     description: 'Launching our new flagship product with top-tier influencers.',
     postIds: ['3', '5', '6'],
-    coverImageUrl: '/campaign-2.png',
+    coverImageUrl: getCampaignCover('product-launch-q3'),
   },
 ];
 
@@ -25,7 +26,7 @@ export const mockPosts: Post[] = [
     platform: 'Instagram',
     influencer: 'Alex Doe',
     influencerHandle: '@alexdoe',
-    thumbnailUrl: 'https://placehold.co/400x500',
+    thumbnailUrl: getCampaignCover('post-1'),
     date: '2024-07-20T10:00:00Z',
     engagement: {
       likes: 15032,
@@ -40,7 +41,7 @@ export const mockPosts: Post[] = [
     platform: 'YouTube',
     influencer: 'Ben Creative',
     influencerHandle: '@bencreative',
-    thumbnailUrl: 'https://placehold.co/400x225',
+    thumbnailUrl: getCampaignCover('post-2'),
     date: '2024-07-19T18:30:00Z',
     engagement: {
       likes: 88000,
@@ -55,7 +56,7 @@ export const mockPosts: Post[] = [
     platform: 'Twitter',
     influencer: 'Casey Dev',
     influencerHandle: '@caseydev',
-    thumbnailUrl: 'https://placehold.co/400x250',
+    thumbnailUrl: getCampaignCover('post-3'),
     date: '2024-07-18T12:00:00Z',
     engagement: {
       likes: 5200,
@@ -70,7 +71,7 @@ export const mockPosts: Post[] = [
     platform: 'Instagram',
     influencer: 'Dana Fashion',
     influencerHandle: '@danafashion',
-    thumbnailUrl: 'https://placehold.co/400x500',
+    thumbnailUrl: getCampaignCover('post-4'),
     date: '2024-07-17T09:00:00Z',
     engagement: {
       likes: 25480,
@@ -85,7 +86,7 @@ export const mockPosts: Post[] = [
     platform: 'Twitter',
     influencer: 'Casey Dev',
     influencerHandle: '@caseydev',
-    thumbnailUrl: 'https://placehold.co/400x250',
+    thumbnailUrl: getCampaignCover('post-5'),
     date: '2024-06-30T15:20:00Z',
     engagement: {
       likes: 780,
@@ -100,7 +101,7 @@ export const mockPosts: Post[] = [
     platform: 'YouTube',
     influencer: 'Ethan Gamer',
     influencerHandle: '@ethangamer',
-    thumbnailUrl: 'https://placehold.co/400x225',
+    thumbnailUrl: getCampaignCover('post-6'),
     date: '2024-06-25T20:00:00Z',
     engagement: {
       likes: 150000,
