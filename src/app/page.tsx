@@ -1,22 +1,35 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Header from '@/components/dashboard/header';
-import { PlusCircle, ArrowRight } from 'lucide-react';
-import { campaigns } from '@/lib/data';
+import { ArrowRight } from 'lucide-react';
+import { campaigns as initialCampaigns } from '@/lib/data';
+import type { Campaign } from '@/lib/types';
+import AddCampaignDialog from '@/components/dashboard/add-campaign-dialog';
 
 export default function CampaignsPage() {
+  const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
+
+  const handleAddCampaign = (newCampaign: Omit<Campaign, 'id' | 'postIds'>) => {
+    const newCampaignWithId: Campaign = {
+      ...newCampaign,
+      id: `campaign-${Date.now()}`, // Simple unique ID generation
+      postIds: [],
+    };
+    setCampaigns((prev) => [...prev, newCampaignWithId]);
+  };
+
   return (
     <div className="min-h-screen w-full bg-background">
       <Header />
       <main className="p-4 md:p-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold font-headline">Campaigns</h1>
-          <Button>
-            <PlusCircle className="mr-2" />
-            Add Campaign
-          </Button>
+          <AddCampaignDialog onAddCampaign={handleAddCampaign} />
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {campaigns.map((campaign) => (
@@ -38,6 +51,7 @@ export default function CampaignsPage() {
                 <p className="text-muted-foreground text-sm">
                   {campaign.postIds.length} posts tracked
                 </p>
+                <p className="text-muted-foreground text-sm mt-2 line-clamp-2">{campaign.description}</p>
               </CardContent>
               <CardFooter className="p-6 pt-0 mt-auto">
                 <Link href={`/campaign/${campaign.id}`} passHref>

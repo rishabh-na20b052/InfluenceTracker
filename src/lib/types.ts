@@ -23,6 +23,7 @@ export type Post = {
 export type Campaign = {
   id: string;
   name: string;
+  description: string;
   postIds: string[];
   coverImageUrl: string;
 };
