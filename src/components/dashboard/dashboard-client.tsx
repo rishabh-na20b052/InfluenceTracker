@@ -12,6 +12,8 @@ import CampaignSummary from './campaign-summary';
 import AddPostForm from './add-post-form';
 import FilterControls from './filter-controls';
 import PostGrid from './post-grid';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Card, CardContent } from '../ui/card';
 
 type Filters = {
   platform: 'all' | Platform;
@@ -74,11 +76,18 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
       <main className="p-4 md:p-8">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
            <div className="flex items-center gap-4">
-            <Link href="/" passHref>
-              <Button variant="outline" size="icon">
-                <ArrowLeft />
-              </Button>
-            </Link>
+            {isReadOnly ? (
+               <Avatar className="h-10 w-10">
+                  <AvatarImage src="https://placehold.co/100x100" alt="@admin" />
+                  <AvatarFallback>A</AvatarFallback>
+                </Avatar>
+            ) : (
+              <Link href="/" passHref>
+                <Button variant="outline" size="icon">
+                  <ArrowLeft />
+                </Button>
+              </Link>
+            )}
             <h1 className="text-3xl font-bold tracking-tight font-headline">
               {campaignName}
             </h1>
@@ -91,6 +100,16 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
           )}
         </div>
         
+        {isReadOnly && (
+          <Card className="mb-8">
+            <CardContent className="p-6">
+              <p className="text-muted-foreground">
+                Experienced marketing professional dedicated to driving brand growth through strategic influencer collaborations.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="mb-8">
             <CampaignSummary posts={filteredAndSortedPosts} />
         </div>
