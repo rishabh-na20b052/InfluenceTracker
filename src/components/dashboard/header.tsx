@@ -17,7 +17,7 @@ export default function Header() {
        <Link href="/" className="flex items-center gap-2">
         <Rocket className="h-6 w-6 text-primary" />
         <h1 className="text-xl font-bold font-headline text-foreground">
-          Influence Tracker
+          Codeit influencer Tracker
         </h1>
       </Link>
       <div className="ml-auto">
