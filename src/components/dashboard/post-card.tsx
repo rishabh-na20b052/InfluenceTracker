@@ -17,7 +17,7 @@ import {
   Repeat,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { utcToZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 
 
 type PostCardProps = {
@@ -43,7 +43,7 @@ function formatNumber(num: number): string {
 export default function PostCard({ post }: PostCardProps) {
   const postDate = new Date(post.date);
   // To avoid hydration errors, we'll format the date in UTC.
-  const zonedDate = utcToZonedTime(postDate, 'Etc/UTC');
+  const zonedDate = toZonedTime(postDate, 'Etc/UTC');
 
   return (
     <Card className="overflow-hidden flex flex-col transition-all hover:shadow-lg hover:-translate-y-1">
