@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 export default function ProfilePage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Header />
       <main className="p-4 md:p-8 flex justify-center">
         <Card className="w-full max-w-2xl">

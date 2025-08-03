@@ -71,7 +71,7 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
   }, [posts, filters]);
 
   return (
-    <div className="min-h-screen w-full bg-gray-50">
+    <div className="min-h-screen w-full bg-background">
       <Header />
       <main className="p-4 md:p-8">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-4">

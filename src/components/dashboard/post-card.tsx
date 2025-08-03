@@ -68,7 +68,7 @@ export default function PostCard({ post }: PostCardProps) {
           />
         </a>
       </CardContent>
-      <CardFooter className="p-4 grid grid-cols-3 gap-2 text-sm mt-auto bg-slate-50">
+      <CardFooter className="p-4 grid grid-cols-3 gap-2 text-sm mt-auto bg-card-foreground/5">
         <div className="flex items-center gap-1.5">
           <Heart className="h-4 w-4 text-red-500" />
           <span className="font-semibold">{formatNumber(post.engagement.likes)}</span>
