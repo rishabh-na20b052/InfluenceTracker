@@ -32,28 +32,30 @@ export default function CampaignsPage() {
       <Header />
       <main className="p-4 md:p-8">
 
-        <Card className="mb-8 overflow-hidden shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between p-6">
-                <div className="flex items-center gap-6">
-                    <Avatar className="h-20 w-20 border-2 border-primary shadow-md">
-                        <AvatarImage src="https://placehold.co/100x100" alt="@admin" />
-                        <AvatarFallback>A</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <CardTitle className="font-headline text-2xl tracking-tight">Admin User</CardTitle>
-                        <CardDescription className="mt-2 text-base max-w-prose">
-                        Experienced marketing professional dedicated to driving brand growth through strategic influencer collaborations.
-                        </CardDescription>
+        <Card className="mb-8 overflow-hidden shadow-sm border-0 bg-transparent">
+            <CardHeader className="flex flex-col md:flex-row items-center gap-8 p-6 md:p-10">
+                <Avatar className="h-32 w-32 border-4 border-primary shadow-lg">
+                    <AvatarImage src="https://placehold.co/128x128" alt="@admin" />
+                    <AvatarFallback>A</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 text-center md:text-left">
+                    <div className="flex items-center justify-center md:justify-start gap-4 mb-2">
+                        <h2 className="font-headline text-4xl font-bold tracking-tight">Admin User</h2>
+                        <Link href="/profile" passHref>
+                            <Button variant="outline" size="icon" className="h-8 w-8">
+                                <Edit className="h-4 w-4" />
+                                <span className="sr-only">Edit Profile</span>
+                            </Button>
+                        </Link>
                     </div>
+                    <p className="text-lg text-muted-foreground max-w-prose mx-auto md:mx-0">
+                    Experienced marketing professional dedicated to driving brand growth through strategic influencer collaborations.
+                    </p>
                 </div>
-                <Link href="/profile" passHref>
-                    <Button variant="outline" size="icon">
-                        <Edit className="h-4 w-4" />
-                        <span className="sr-only">Edit Profile</span>
-                    </Button>
-                </Link>
             </CardHeader>
         </Card>
+
+        <Separator className="my-12" />
 
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold font-headline">Campaigns</h1>
