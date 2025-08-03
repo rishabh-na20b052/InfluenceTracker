@@ -3,7 +3,7 @@ import { campaigns, mockPosts } from '@/lib/data';
 import type { Post } from '@/lib/types';
 import { notFound } from 'next/navigation';
 
-export default function CampaignDashboardPage({ params }: { params: { id: string } }) {
+export default function CampaignDashboardPage({ params, searchParams }: { params: { id: string }, searchParams: { [key: string]: string | string[] | undefined } }) {
   const campaign = campaigns.find((c) => c.id === params.id);
 
   if (!campaign) {
@@ -12,5 +12,7 @@ export default function CampaignDashboardPage({ params }: { params: { id: string
 
   const campaignPosts: Post[] = mockPosts.filter(p => campaign.postIds.includes(p.id));
 
-  return <DashboardClient initialPosts={campaignPosts} campaignName={campaign.name} />;
+  const isReadOnly = searchParams.view === 'readonly';
+
+  return <DashboardClient initialPosts={campaignPosts} campaignName={campaign.name} campaignId={campaign.id} isReadOnly={isReadOnly} />;
 }

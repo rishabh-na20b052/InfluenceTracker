@@ -24,4 +24,5 @@ export type Campaign = {
   id: string;
   name: string;
   postIds: string[];
+  coverImageUrl: string;
 };

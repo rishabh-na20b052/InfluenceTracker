@@ -2,6 +2,10 @@
 
 import { useState, useMemo } from 'react';
 import type { Post, Platform } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Share2, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 import Header from './header';
 import CampaignSummary from './campaign-summary';
@@ -19,9 +23,11 @@ type Filters = {
 type DashboardClientProps = {
   initialPosts: Post[];
   campaignName: string;
+  campaignId: string;
+  isReadOnly: boolean;
 }
 
-export default function DashboardClient({ initialPosts, campaignName }: DashboardClientProps) {
+export default function DashboardClient({ initialPosts, campaignName, campaignId, isReadOnly }: DashboardClientProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [filters, setFilters] = useState<Filters>({
     platform: 'all',
@@ -29,6 +35,16 @@ export default function DashboardClient({ initialPosts, campaignName }: Dashboar
     sortBy: 'date',
     sortOrder: 'desc',
   });
+  const { toast } = useToast();
+
+  const handleShare = () => {
+    const shareUrl = `${window.location.origin}/campaign/${campaignId}?view=readonly`;
+    navigator.clipboard.writeText(shareUrl);
+    toast({
+      title: 'Link Copied!',
+      description: 'Read-only link copied to clipboard.',
+    });
+  };
 
   const filteredAndSortedPosts = useMemo(() => {
     return posts
@@ -53,18 +69,42 @@ export default function DashboardClient({ initialPosts, campaignName }: Dashboar
   }, [posts, filters]);
 
   return (
-    <div className="min-h-screen w-full">
+    <div className="min-h-screen w-full bg-gray-50">
       <Header />
       <main className="p-4 md:p-8">
-        <CampaignSummary posts={filteredAndSortedPosts} campaignName={campaignName} />
-        <div className="grid gap-8 lg:grid-cols-3 mt-8">
-          <div className="lg:col-span-2">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
+           <div className="flex items-center gap-4">
+            <Link href="/" passHref>
+              <Button variant="outline" size="icon">
+                <ArrowLeft />
+              </Button>
+            </Link>
+            <h1 className="text-3xl font-bold tracking-tight font-headline">
+              {campaignName}
+            </h1>
+          </div>
+          {!isReadOnly && (
+            <Button onClick={handleShare}>
+              <Share2 className="mr-2"/>
+              Share
+            </Button>
+          )}
+        </div>
+        
+        <div className="mb-8">
+            <CampaignSummary posts={filteredAndSortedPosts} />
+        </div>
+
+        <div className={`grid gap-8 ${isReadOnly ? 'grid-cols-1' : 'lg:grid-cols-3'}`}>
+          <div className={isReadOnly ? 'col-span-1' : 'lg:col-span-2'}>
             <FilterControls filters={filters} setFilters={setFilters} />
             <PostGrid posts={filteredAndSortedPosts} />
           </div>
-          <div className="lg:col-span-1">
-            <AddPostForm />
-          </div>
+          {!isReadOnly && (
+            <div className="lg:col-span-1">
+              <AddPostForm />
+            </div>
+          )}
         </div>
       </main>
     </div>

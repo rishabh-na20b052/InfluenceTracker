@@ -5,11 +5,13 @@ export const campaigns: Campaign[] = [
     id: 'summer-sale-2024',
     name: 'Summer Sale 2024',
     postIds: ['1', '2', '4'],
+    coverImageUrl: 'https://placehold.co/600x300',
   },
   {
     id: 'product-launch-q3',
     name: 'Product Launch Q3',
     postIds: ['3', '5', '6'],
+    coverImageUrl: 'https://placehold.co/600x300',
   },
 ];
 
