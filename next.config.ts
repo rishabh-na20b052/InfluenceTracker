@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  staticImage: true,
 };
 
 export default nextConfig;

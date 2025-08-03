@@ -35,7 +35,7 @@ export default function CampaignsPage() {
         <Card className="mb-8 overflow-hidden shadow-sm border-0 bg-transparent">
             <CardHeader className="flex flex-col md:flex-row items-center gap-8 p-6 md:p-10">
                 <Avatar className="h-32 w-32 border-4 border-primary shadow-lg">
-                    <AvatarImage src="https://placehold.co/128x128" alt="@admin" />
+                    <AvatarImage src="/user.png" alt="@admin" />
                     <AvatarFallback>A</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 text-center md:text-left">

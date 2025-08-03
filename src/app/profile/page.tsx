@@ -28,7 +28,7 @@ export default function ProfilePage() {
             <form className="space-y-6">
               <div className="flex items-center space-x-6">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src="https://placehold.co/100x100" alt="@admin" />
+                  <AvatarImage src="/user.png" alt="@admin" />
                   <AvatarFallback>A</AvatarFallback>
                 </Avatar>
                 <Button variant="outline">Change Photo</Button>

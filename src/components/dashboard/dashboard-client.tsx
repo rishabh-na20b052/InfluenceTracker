@@ -78,7 +78,7 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
            <div className="flex items-center gap-4">
             {isReadOnly ? (
                <Avatar className="h-10 w-10">
-                  <AvatarImage src="https://placehold.co/100x100" alt="@admin" />
+                  <AvatarImage src="/user.png" alt="@admin" />
                   <AvatarFallback>A</AvatarFallback>
                 </Avatar>
             ) : (
