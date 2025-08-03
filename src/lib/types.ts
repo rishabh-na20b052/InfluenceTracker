@@ -10,6 +10,7 @@ export type EngagementMetrics = {
 
 export type Post = {
   id: string;
+  campaignId: string;
   url: string;
   platform: Platform;
   influencer: string;
@@ -17,4 +18,10 @@ export type Post = {
   thumbnailUrl: string;
   date: string; // ISO 8601 format
   engagement: EngagementMetrics;
+};
+
+export type Campaign = {
+  id: string;
+  name: string;
+  postIds: string[];
 };

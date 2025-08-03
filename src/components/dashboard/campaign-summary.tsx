@@ -6,9 +6,10 @@ import { Users, Heart, MessageCircle } from 'lucide-react';
 
 type CampaignSummaryProps = {
   posts: Post[];
+  campaignName: string;
 };
 
-export default function CampaignSummary({ posts }: CampaignSummaryProps) {
+export default function CampaignSummary({ posts, campaignName }: CampaignSummaryProps) {
   const totalPosts = posts.length;
   const { totalLikes, totalComments } = posts.reduce(
     (acc, post) => {
@@ -18,12 +19,14 @@ export default function CampaignSummary({ posts }: CampaignSummaryProps) {
     },
     { totalLikes: 0, totalComments: 0 }
   );
-  
+
   const uniqueInfluencers = new Set(posts.map(p => p.influencer)).size;
 
   return (
     <div>
-      <h2 className="text-3xl font-bold tracking-tight font-headline mb-4">Campaign Snapshot</h2>
+      <h2 className="text-3xl font-bold tracking-tight font-headline mb-4">
+        {campaignName}: Snapshot
+      </h2>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

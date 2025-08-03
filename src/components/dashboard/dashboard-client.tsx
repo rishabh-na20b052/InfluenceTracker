@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react';
 import type { Post, Platform } from '@/lib/types';
-import { mockPosts } from '@/lib/data';
 
 import Header from './header';
 import CampaignSummary from './campaign-summary';
@@ -17,8 +16,13 @@ type Filters = {
   sortOrder: 'asc' | 'desc';
 };
 
-export default function DashboardClient() {
-  const [posts, setPosts] = useState<Post[]>(mockPosts);
+type DashboardClientProps = {
+  initialPosts: Post[];
+  campaignName: string;
+}
+
+export default function DashboardClient({ initialPosts, campaignName }: DashboardClientProps) {
+  const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [filters, setFilters] = useState<Filters>({
     platform: 'all',
     influencer: '',
@@ -52,7 +56,7 @@ export default function DashboardClient() {
     <div className="min-h-screen w-full">
       <Header />
       <main className="p-4 md:p-8">
-        <CampaignSummary posts={filteredAndSortedPosts} />
+        <CampaignSummary posts={filteredAndSortedPosts} campaignName={campaignName} />
         <div className="grid gap-8 lg:grid-cols-3 mt-8">
           <div className="lg:col-span-2">
             <FilterControls filters={filters} setFilters={setFilters} />

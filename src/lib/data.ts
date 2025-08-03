@@ -1,8 +1,22 @@
-import type { Post } from './types';
+import type { Post, Campaign } from './types';
+
+export const campaigns: Campaign[] = [
+  {
+    id: 'summer-sale-2024',
+    name: 'Summer Sale 2024',
+    postIds: ['1', '2', '4'],
+  },
+  {
+    id: 'product-launch-q3',
+    name: 'Product Launch Q3',
+    postIds: ['3', '5', '6'],
+  },
+];
 
 export const mockPosts: Post[] = [
   {
     id: '1',
+    campaignId: 'summer-sale-2024',
     url: 'https://www.instagram.com/p/C1234567890/',
     platform: 'Instagram',
     influencer: 'Alex Doe',
@@ -17,6 +31,7 @@ export const mockPosts: Post[] = [
   },
   {
     id: '2',
+    campaignId: 'summer-sale-2024',
     url: 'https://www.youtube.com/watch?v=abcdef12345',
     platform: 'YouTube',
     influencer: 'Ben Creative',
@@ -31,6 +46,7 @@ export const mockPosts: Post[] = [
   },
   {
     id: '3',
+    campaignId: 'product-launch-q3',
     url: 'https://twitter.com/caseydev/status/1234567890123456789',
     platform: 'Twitter',
     influencer: 'Casey Dev',
@@ -45,6 +61,7 @@ export const mockPosts: Post[] = [
   },
   {
     id: '4',
+    campaignId: 'summer-sale-2024',
     url: 'https://www.instagram.com/p/C2345678901/',
     platform: 'Instagram',
     influencer: 'Dana Fashion',
@@ -59,6 +76,7 @@ export const mockPosts: Post[] = [
   },
   {
     id: '5',
+    campaignId: 'product-launch-q3',
     url: 'https://twitter.com/techguru/status/1234567890123456789',
     platform: 'Twitter',
     influencer: 'Casey Dev',
@@ -73,6 +91,7 @@ export const mockPosts: Post[] = [
   },
   {
     id: '6',
+    campaignId: 'product-launch-q3',
     url: 'https://www.youtube.com/watch?v=ghijk67890',
     platform: 'YouTube',
     influencer: 'Ethan Gamer',
