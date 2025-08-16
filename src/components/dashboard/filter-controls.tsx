@@ -10,12 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Filter } from 'lucide-react';
+// Note: The 'Filter' icon is imported but not used. You can remove it or use it if you wish.
+// import { Filter } from 'lucide-react'; 
 import type { Post, Platform } from '@/lib/types';
 
+// CHANGE 1: Remove 'influencer' from the Filters type
 type Filters = {
   platform: 'all' | Platform;
-  influencer: string;
   sortBy: keyof Post['engagement'] | 'date';
   sortOrder: 'asc' | 'desc';
 };
@@ -26,19 +27,16 @@ type FilterControlsProps = {
 };
 
 export default function FilterControls({ filters, setFilters }: FilterControlsProps) {
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
-  };
-
+  // CHANGE 2: Remove the specific handler for input change as it's no longer needed
+  
   const handleSelectChange = (name: keyof Filters) => (value: string) => {
     setFilters(prev => ({ ...prev, [name]: value }));
   };
 
   const handleReset = () => {
+    // CHANGE 3: Remove 'influencer' from the reset state
     setFilters({
       platform: 'all',
-      influencer: '',
       sortBy: 'date',
       sortOrder: 'desc',
     });
@@ -46,17 +44,11 @@ export default function FilterControls({ filters, setFilters }: FilterControlsPr
 
   return (
     <div className="mb-4 p-4 bg-card rounded-lg shadow-sm border">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-        <div>
-          <Label htmlFor="influencer">Influencer</Label>
-          <Input
-            id="influencer"
-            name="influencer"
-            placeholder="Search by name..."
-            value={filters.influencer}
-            onChange={handleInputChange}
-          />
-        </div>
+      {/* CHANGE 4: Adjust grid layout for fewer items */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        
+        {/* The 'Influencer' Input block has been completely removed */}
+
         <div>
           <Label htmlFor="platform">Platform</Label>
           <Select name="platform" value={filters.platform} onValueChange={handleSelectChange('platform')}>
@@ -64,13 +56,15 @@ export default function FilterControls({ filters, setFilters }: FilterControlsPr
               <SelectValue placeholder="Select platform" />
             </SelectTrigger>
             <SelectContent>
+              {/* CHANGE 5: Correct the values to match the database schema (lowercase) */}
               <SelectItem value="all">All Platforms</SelectItem>
-              <SelectItem value="Instagram">Instagram</SelectItem>
-              <SelectItem value="YouTube">YouTube</SelectItem>
-              <SelectItem value="Twitter">Twitter</SelectItem>
+              <SelectItem value="instagram">Instagram</SelectItem>
+              <SelectItem value="youtube">YouTube</SelectItem>
+              <SelectItem value="x">X / Twitter</SelectItem>
             </SelectContent>
           </Select>
         </div>
+
         <div>
           <Label htmlFor="sortBy">Sort By</Label>
           <Select name="sortBy" value={filters.sortBy} onValueChange={handleSelectChange('sortBy')}>
@@ -82,9 +76,11 @@ export default function FilterControls({ filters, setFilters }: FilterControlsPr
               <SelectItem value="likes">Likes</SelectItem>
               <SelectItem value="comments">Comments</SelectItem>
               <SelectItem value="views">Views</SelectItem>
+              {/* Note: Ensure your `Post` type's `engagement` object has these keys */}
             </SelectContent>
           </Select>
         </div>
+
         <div className="flex gap-2">
           <Select name="sortOrder" value={filters.sortOrder} onValueChange={handleSelectChange('sortOrder')}>
             <SelectTrigger>

@@ -1,11 +1,14 @@
+// components/DashboardClient.tsx (Final Version)
 'use client';
 
 import { useState, useMemo } from 'react';
 import type { Post, Platform } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Share2, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+// CHANGE 1: Use the createClient function for client components
+import { supabase } from '@/lib/supabaseClient';
 
 import Header from './header';
 import CampaignSummary from './campaign-summary';
@@ -15,10 +18,11 @@ import PostGrid from './post-grid';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Card, CardContent } from '../ui/card';
 import { getImageWithFallback } from '@/lib/image-utils';
+// Import the new dialog component
+import ShareCampaignDialog from './share-campaign-dialog';
 
 type Filters = {
   platform: 'all' | Platform;
-  influencer: string;
   sortBy: keyof Post['engagement'] | 'date';
   sortOrder: 'asc' | 'desc';
 };
@@ -34,31 +38,38 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [filters, setFilters] = useState<Filters>({
     platform: 'all',
-    influencer: '',
     sortBy: 'date',
     sortOrder: 'desc',
   });
   const { toast } = useToast();
 
-  const handleShare = () => {
-    const shareUrl = `${window.location.origin}/campaign/${campaignId}?view=readonly`;
-    navigator.clipboard.writeText(shareUrl);
-    toast({
-      title: 'Link Copied!',
-      description: 'Read-only link copied to clipboard.',
-    });
+  const refreshPosts = async () => {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('campaign_id', campaignId);
+
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error Fetching Posts',
+        description: error.message,
+      });
+    } else if (data) {
+      setPosts(data as Post[]);
+    }
   };
+
+  // CHANGE 2: The entire handleShare function is now deleted.
+  // Its logic is handled by the ShareCampaignDialog component.
 
   const filteredAndSortedPosts = useMemo(() => {
     return posts
       .filter(post => {
-        const platformMatch = filters.platform === 'all' || post.platform === filters.platform;
-        const influencerMatch = post.influencer.toLowerCase().includes(filters.influencer.toLowerCase());
-        return platformMatch && influencerMatch;
+        return filters.platform === 'all' || post.platform === filters.platform;
       })
       .sort((a, b) => {
         let valA, valB;
-
         if (filters.sortBy === 'date') {
           valA = new Date(a.date).getTime();
           valB = new Date(b.date).getTime();
@@ -66,7 +77,6 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
           valA = a.engagement[filters.sortBy as keyof typeof a.engagement] ?? 0;
           valB = b.engagement[filters.sortBy as keyof typeof b.engagement] ?? 0;
         }
-
         return filters.sortOrder === 'asc' ? valA - valB : valB - valA;
       });
   }, [posts, filters]);
@@ -83,7 +93,7 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
                   <AvatarFallback>A</AvatarFallback>
                 </Avatar>
             ) : (
-              <Link href="/" passHref>
+              <Link href="/dashboard" passHref>
                 <Button variant="outline" size="icon">
                   <ArrowLeft />
                 </Button>
@@ -93,19 +103,19 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
               {campaignName}
             </h1>
           </div>
+          
+          {/* CHANGE 3: Replace the old Button with the new Dialog component */}
           {!isReadOnly && (
-            <Button onClick={handleShare}>
-              <Share2 className="mr-2"/>
-              Share Campaign
-            </Button>
+            <ShareCampaignDialog campaignId={campaignId} />
           )}
+
         </div>
         
         {isReadOnly && (
           <Card className="mb-8">
             <CardContent className="p-6">
               <p className="text-muted-foreground">
-                Experienced marketing professional dedicated to driving brand growth through strategic influencer collaborations.
+                This is a read-only view of the campaign's performance, shared by the administrator.
               </p>
             </CardContent>
           </Card>
@@ -122,7 +132,10 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
           </div>
           {!isReadOnly && (
             <div className="lg:col-span-1">
-              <AddPostForm />
+              <AddPostForm 
+                campaignId={campaignId}
+                onPostAdded={refreshPosts} 
+              />
             </div>
           )}
         </div>
