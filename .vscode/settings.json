@@ -1,0 +1,13 @@
+{
+  "deno.enable": true,
+  "deno.lint": true,
+  "deno.unstable": true,
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  // This is the most important part.
+  // It tells the extension to ONLY be active for this specific folder.
+  "deno.enablePaths": [
+    "supabase/functions"
+  ]
+}
