@@ -1,0 +1,19 @@
+// File: deno.jsonc
+{
+    "//": "This file configures the Deno extension for your editor.",
+    "lint": {
+      "//": "Specifies which files Deno should lint.",
+      "files": {
+        "include": ["supabase/functions/"]
+      }
+    },
+    "fmt": {
+      "//": "Specifies which files Deno should format.",
+      "files": {
+        "include": ["supabase/functions/"]
+      }
+    }
+  }
+
+
+  

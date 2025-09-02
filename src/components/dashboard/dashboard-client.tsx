@@ -1,6 +1,7 @@
 // components/DashboardClient.tsx (Final Version)
 'use client';
 
+<<<<<<< HEAD
 import { useState, useMemo } from 'react';
 import type { Post, Platform } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +21,24 @@ import { Card, CardContent } from '../ui/card';
 import { getImageWithFallback } from '@/lib/image-utils';
 // Import the new dialog component
 import ShareCampaignDialog from './share-campaign-dialog';
+=======
+import { useState, useMemo } from "react";
+import type { Post, Platform } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+
+import Header from "./header";
+import CampaignSummary from "./campaign-summary";
+import AddPostForm from "./add-post-form";
+import FilterControls from "./filter-controls";
+import PostGrid from "./post-grid";
+import ShareCampaignDialog from "./share-campaign-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Card, CardContent } from "../ui/card";
+import { getImageWithFallback } from "@/lib/image-utils";
+>>>>>>> fbb20c6 (Track Post and Share Campaign)
 
 type Filters = {
   platform: 'all' | Platform;
@@ -43,6 +62,7 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
   });
   const { toast } = useToast();
 
+<<<<<<< HEAD
   const refreshPosts = async () => {
     const { data, error } = await supabase
       .from('posts')
@@ -63,6 +83,8 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
   // CHANGE 2: The entire handleShare function is now deleted.
   // Its logic is handled by the ShareCampaignDialog component.
 
+=======
+>>>>>>> fbb20c6 (Track Post and Share Campaign)
   const filteredAndSortedPosts = useMemo(() => {
     return posts
       .filter(post => {
@@ -106,7 +128,14 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
           
           {/* CHANGE 3: Replace the old Button with the new Dialog component */}
           {!isReadOnly && (
+<<<<<<< HEAD
             <ShareCampaignDialog campaignId={campaignId} />
+=======
+            <ShareCampaignDialog
+              campaignId={campaignId}
+              campaignName={campaignName}
+            />
+>>>>>>> fbb20c6 (Track Post and Share Campaign)
           )}
 
         </div>
@@ -122,7 +151,11 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
         )}
 
         <div className="mb-8">
+<<<<<<< HEAD
             <CampaignSummary posts={filteredAndSortedPosts} />
+=======
+          <CampaignSummary posts={posts} />
+>>>>>>> fbb20c6 (Track Post and Share Campaign)
         </div>
 
         <div className={`grid gap-8 ${isReadOnly ? 'grid-cols-1' : 'lg:grid-cols-3'}`}>

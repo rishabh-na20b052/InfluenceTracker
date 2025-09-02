@@ -9,12 +9,20 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+<<<<<<< HEAD
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 // We do NOT import the supabase client here anymore.
+=======
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { PlusCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+>>>>>>> fbb20c6 (Track Post and Share Campaign)
 
 // Define the shape of the newly created post that our API will return.
 // This should match the columns in your Supabase 'posts' table.
@@ -28,6 +36,7 @@ interface NewPost {
 
 type AddPostFormProps = {
   campaignId: string;
+<<<<<<< HEAD
   // The callback now expects the newly created post object.
   onPostAdded: (newPost: NewPost) => void; 
 };
@@ -52,6 +61,40 @@ export default function AddPostForm({ campaignId, onPostAdded }: AddPostFormProp
               campaignId: campaignId,
               postUrl: url,
           }),
+=======
+  onAdded?: () => void;
+}) {
+  const { toast } = useToast();
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const input = form.elements.namedItem(
+      "post-url"
+    ) as HTMLInputElement | null;
+    const url = input?.value || "";
+    fetch("/api/posts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ campaignId, postUrl: url }),
+    })
+      .then(async (r) => {
+        const d = await r.json();
+        if (!r.ok) throw new Error(d?.error || "Failed");
+        toast({
+          title: "Post Added Successfully!",
+          description: "The post has been tracked and metrics will be updated.",
+        });
+        form.reset();
+        onAdded?.();
+      })
+      .catch((err) => {
+        toast({
+          title: "Failed to Add Post",
+          description: err?.message || "Please check the URL and try again.",
+          variant: "destructive",
+        });
+>>>>>>> fbb20c6 (Track Post and Share Campaign)
       });
 
       const result = await response.json();
