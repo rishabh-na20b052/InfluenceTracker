@@ -1,27 +1,5 @@
+"use client";
 
-<<<<<<< HEAD
-'use client';
-
-import { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
-import Header from '@/components/dashboard/header';
-import { ArrowRight, Edit, Mail, MapPin, Calendar, Award, Share2 } from 'lucide-react';
-import { campaigns as initialCampaigns } from '@/lib/data';
-import type { Campaign } from '@/lib/types';
-import AddCampaignDialog from '@/components/dashboard/add-campaign-dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ThemeSwitcher } from '@/components/theme-switcher';
-import { Separator } from '@/components/ui/separator';
-import { getImageWithFallback } from '@/lib/image-utils';
-import ThemeCreator from '@/components/theme-creator';
-import { useToast } from '@/hooks/use-toast';
-
-export default function CampaignsPage() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
-=======
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -60,30 +38,22 @@ export default function CampaignsPage() {
     Record<string, number>
   >({});
   const [loading, setLoading] = useState(true);
->>>>>>> fbb20c6 (Track Post and Share Campaign)
   const { toast } = useToast();
-  
+
   // Check if we're in read-only mode
-  const isReadOnly = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('view') === 'readonly';
+  const isReadOnly =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("view") === "readonly";
 
   const handleShareProfile = () => {
     const shareUrl = `${window.location.origin}?view=readonly`;
     navigator.clipboard.writeText(shareUrl);
     toast({
-      title: 'Profile Link Copied!',
-      description: 'Read-only profile link copied to clipboard.',
+      title: "Profile Link Copied!",
+      description: "Read-only profile link copied to clipboard.",
     });
   };
 
-<<<<<<< HEAD
-  const handleAddCampaign = (newCampaign: Omit<Campaign, 'id' | 'postIds'>) => {
-    const newCampaignWithId: Campaign = {
-      ...newCampaign,
-      id: `campaign-${Date.now()}`, // Simple unique ID generation
-      postIds: [],
-    };
-    setCampaigns((prev) => [...prev, newCampaignWithId]);
-=======
   useEffect(() => {
     (async () => {
       try {
@@ -116,9 +86,13 @@ export default function CampaignsPage() {
     })();
   }, []);
 
-  const handleAddCampaign = async (
-    newCampaign: Omit<Campaign, "id" | "postIds">
-  ) => {
+  const handleAddCampaign = async (newCampaign: {
+    id: string;
+    name: string;
+    description: string;
+    cover_image_url: string;
+    user_id: string;
+  }) => {
     try {
       const res = await fetch("/api/campaigns", {
         method: "POST",
@@ -126,7 +100,7 @@ export default function CampaignsPage() {
         body: JSON.stringify({
           name: newCampaign.name,
           description: newCampaign.description,
-          cover_image_url: newCampaign.coverImageUrl,
+          cover_image_url: newCampaign.cover_image_url,
         }),
       });
       const data = await res.json();
@@ -137,7 +111,7 @@ export default function CampaignsPage() {
         name: c.name,
         description: c.description || "",
         coverImageUrl:
-          c.cover_image_url ||
+          newCampaign.cover_image_url ||
           getImageWithFallback("/assets/campaign_dp1.webp", "campaign"),
         postIds: [],
       };
@@ -151,7 +125,6 @@ export default function CampaignsPage() {
         description: e?.message || "Unknown error",
       });
     }
->>>>>>> fbb20c6 (Track Post and Share Campaign)
   };
 
   return (
@@ -165,7 +138,7 @@ export default function CampaignsPage() {
             <div className="md:col-span-1 flex justify-center">
               <div className="relative">
                 <Image
-                  src={getImageWithFallback('/assets/man_do.jpg', 'admin')}
+                  src={getImageWithFallback("/assets/man_do.jpg", "admin")}
                   alt="Ujjwal Singh"
                   width={300}
                   height={300}
@@ -205,10 +178,12 @@ export default function CampaignsPage() {
 
               <div className="space-y-4">
                 <p className="text-lg leading-relaxed text-muted-foreground">
-                  Experienced marketing professional dedicated to driving brand growth through strategic influencer collaborations. 
-                  Specialized in campaign management, performance analytics, and building meaningful partnerships between brands and creators.
+                  Experienced marketing professional dedicated to driving brand
+                  growth through strategic influencer collaborations.
+                  Specialized in campaign management, performance analytics, and
+                  building meaningful partnerships between brands and creators.
                 </p>
-                
+
                 <div className="flex flex-wrap gap-3">
                   <div className="flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
                     <Award className="h-4 w-4" />
@@ -239,7 +214,11 @@ export default function CampaignsPage() {
                       </Button>
                     </>
                   )}
-                  <Button variant="outline" onClick={handleShareProfile} className="gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleShareProfile}
+                    className="gap-2"
+                  >
                     <Share2 className="h-4 w-4" />
                     Share Profile
                   </Button>
@@ -254,49 +233,19 @@ export default function CampaignsPage() {
         {/* Campaigns Section */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-3xl font-bold font-headline">Active Campaigns</h2>
+            <h2 className="text-3xl font-bold font-headline">
+              Active Campaigns
+            </h2>
             <p className="text-muted-foreground mt-2">
               Manage and track your influencer marketing campaigns
             </p>
           </div>
-          {!isReadOnly && <AddCampaignDialog onAddCampaign={handleAddCampaign} />}
+          {!isReadOnly && (
+            <AddCampaignDialog onCampaignAdded={handleAddCampaign} />
+          )}
         </div>
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-<<<<<<< HEAD
-          {campaigns.map((campaign) => (
-            <Card key={campaign.id} className="flex flex-col transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-2 overflow-hidden group">
-              <CardHeader className="p-0 relative">
-                <div className="overflow-hidden">
-                    <Image
-                      src={getImageWithFallback(campaign.coverImageUrl, 'campaign')}
-                      alt={`${campaign.name} cover`}
-                      width={600}
-                      height={300}
-                      className="w-full h-48 object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
-                      data-ai-hint="campaign marketing"
-                    />
-                </div>
-                <div className="p-6">
-                  <CardTitle className="font-headline text-xl">{campaign.name}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-grow p-6 pt-0">
-                <p className="text-muted-foreground text-sm">
-                  {campaign.postIds.length} posts tracked
-                </p>
-                <p className="text-muted-foreground text-sm mt-2 line-clamp-2">{campaign.description}</p>
-              </CardContent>
-              <CardFooter className="p-6 pt-4 mt-auto bg-card/50">
-                <Link href={`/campaign/${campaign.id}`} passHref className="w-full">
-                  <Button variant="outline" className="w-full">
-                    View Dashboard <ArrowRight className="ml-2 transition-transform duration-300 group-hover:translate-x-1" />
-                  </Button>
-                </Link>
-              </CardFooter>
-            </Card>
-          ))}
-=======
           {loading
             ? // Loading skeletons
               Array.from({ length: 6 }).map((_, i) => (
@@ -367,7 +316,6 @@ export default function CampaignsPage() {
                   </CardFooter>
                 </Card>
               ))}
->>>>>>> fbb20c6 (Track Post and Share Campaign)
         </div>
 
         {!isReadOnly && (
@@ -376,23 +324,25 @@ export default function CampaignsPage() {
 
             {/* Appearance Section */}
             <Card className="p-8 bg-card/50">
-                <div className="text-center mb-6">
-                    <h2 className="text-2xl font-bold font-headline">Appearance</h2>
-                    <p className="text-muted-foreground">Customize the look and feel of your dashboard.</p>
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold font-headline">Appearance</h2>
+                <p className="text-muted-foreground">
+                  Customize the look and feel of your dashboard.
+                </p>
+              </div>
+
+              <div className="space-y-8">
+                {/* Quick Theme Switcher */}
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold mb-4">Quick Themes</h3>
+                  <ThemeSwitcher />
                 </div>
-                
-                <div className="space-y-8">
-                    {/* Quick Theme Switcher */}
-                    <div className="text-center">
-                        <h3 className="text-lg font-semibold mb-4">Quick Themes</h3>
-                        <ThemeSwitcher />
-                    </div>
-                    
-                    <Separator />
-                    
-                    {/* Custom Theme Creator */}
-                    <ThemeCreator />
-                </div>
+
+                <Separator />
+
+                {/* Custom Theme Creator */}
+                <ThemeCreator />
+              </div>
             </Card>
           </>
         )}

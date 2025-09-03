@@ -1,27 +1,6 @@
 // components/DashboardClient.tsx (Final Version)
-'use client';
+"use client";
 
-<<<<<<< HEAD
-import { useState, useMemo } from 'react';
-import type { Post, Platform } from '@/lib/types';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
-// CHANGE 1: Use the createClient function for client components
-import { supabase } from '@/lib/supabaseClient';
-
-import Header from './header';
-import CampaignSummary from './campaign-summary';
-import AddPostForm from './add-post-form';
-import FilterControls from './filter-controls';
-import PostGrid from './post-grid';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Card, CardContent } from '../ui/card';
-import { getImageWithFallback } from '@/lib/image-utils';
-// Import the new dialog component
-import ShareCampaignDialog from './share-campaign-dialog';
-=======
 import { useState, useMemo } from "react";
 import type { Post, Platform } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -38,12 +17,11 @@ import ShareCampaignDialog from "./share-campaign-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Card, CardContent } from "../ui/card";
 import { getImageWithFallback } from "@/lib/image-utils";
->>>>>>> fbb20c6 (Track Post and Share Campaign)
 
 type Filters = {
-  platform: 'all' | Platform;
-  sortBy: keyof Post['engagement'] | 'date';
-  sortOrder: 'asc' | 'desc';
+  platform: "all" | Platform;
+  sortBy: keyof Post["engagement"] | "date";
+  sortOrder: "asc" | "desc";
 };
 
 type DashboardClientProps = {
@@ -51,55 +29,79 @@ type DashboardClientProps = {
   campaignName: string;
   campaignId: string;
   isReadOnly: boolean;
-}
+};
 
-export default function DashboardClient({ initialPosts, campaignName, campaignId, isReadOnly }: DashboardClientProps) {
+export default function DashboardClient({
+  initialPosts,
+  campaignName,
+  campaignId,
+  isReadOnly,
+}: DashboardClientProps) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [filters, setFilters] = useState<Filters>({
-    platform: 'all',
-    sortBy: 'date',
-    sortOrder: 'desc',
+    platform: "all",
+    sortBy: "date",
+    sortOrder: "desc",
   });
   const { toast } = useToast();
 
-<<<<<<< HEAD
   const refreshPosts = async () => {
-    const { data, error } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('campaign_id', campaignId);
-
-    if (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error Fetching Posts',
-        description: error.message,
+    try {
+      const response = await fetch(`/api/campaigns/${campaignId}/posts`, {
+        cache: "no-store",
       });
-    } else if (data) {
-      setPosts(data as Post[]);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch posts");
+      }
+
+      const data = await response.json();
+      const mappedPosts: Post[] = (data.posts || []).map((p: any) => ({
+        id: p.id,
+        campaignId: p.campaign_id,
+        url: p.post_url,
+        platform:
+          p.platform === "youtube"
+            ? "YouTube"
+            : p.platform === "instagram"
+            ? "Instagram"
+            : "Twitter",
+        influencer: p.username || "Unknown",
+        influencerHandle: p.username ? `@${p.username}` : "@unknown",
+        thumbnailUrl: p.thumbnail_url || "/assets/campaign_dp1.webp",
+        date: p.posted_at || p.created_at,
+        engagement: {
+          likes: Number(p.likes || 0),
+          comments: Number(p.comments || 0),
+          views: Number(p.views || 0),
+          retweets: Number(p.shares || 0),
+        },
+      }));
+      setPosts(mappedPosts);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error Fetching Posts",
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   };
 
-  // CHANGE 2: The entire handleShare function is now deleted.
-  // Its logic is handled by the ShareCampaignDialog component.
-
-=======
->>>>>>> fbb20c6 (Track Post and Share Campaign)
   const filteredAndSortedPosts = useMemo(() => {
     return posts
-      .filter(post => {
-        return filters.platform === 'all' || post.platform === filters.platform;
+      .filter((post) => {
+        return filters.platform === "all" || post.platform === filters.platform;
       })
       .sort((a, b) => {
         let valA, valB;
-        if (filters.sortBy === 'date') {
+        if (filters.sortBy === "date") {
           valA = new Date(a.date).getTime();
           valB = new Date(b.date).getTime();
         } else {
           valA = a.engagement[filters.sortBy as keyof typeof a.engagement] ?? 0;
           valB = b.engagement[filters.sortBy as keyof typeof b.engagement] ?? 0;
         }
-        return filters.sortOrder === 'asc' ? valA - valB : valB - valA;
+        return filters.sortOrder === "asc" ? valA - valB : valB - valA;
       });
   }, [posts, filters]);
 
@@ -108,12 +110,15 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
       <Header />
       <main className="p-4 md:p-8">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-           <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4">
             {isReadOnly ? (
-               <Avatar className="h-10 w-10">
-                  <AvatarImage src={getImageWithFallback('/user.png', 'admin')} alt="@admin" />
-                  <AvatarFallback>A</AvatarFallback>
-                </Avatar>
+              <Avatar className="h-10 w-10">
+                <AvatarImage
+                  src={getImageWithFallback("/user.png", "admin")}
+                  alt="@admin"
+                />
+                <AvatarFallback>A</AvatarFallback>
+              </Avatar>
             ) : (
               <Link href="/dashboard" passHref>
                 <Button variant="outline" size="icon">
@@ -125,50 +130,43 @@ export default function DashboardClient({ initialPosts, campaignName, campaignId
               {campaignName}
             </h1>
           </div>
-          
+
           {/* CHANGE 3: Replace the old Button with the new Dialog component */}
           {!isReadOnly && (
-<<<<<<< HEAD
-            <ShareCampaignDialog campaignId={campaignId} />
-=======
             <ShareCampaignDialog
               campaignId={campaignId}
               campaignName={campaignName}
             />
->>>>>>> fbb20c6 (Track Post and Share Campaign)
           )}
-
         </div>
-        
+
         {isReadOnly && (
           <Card className="mb-8">
             <CardContent className="p-6">
               <p className="text-muted-foreground">
-                This is a read-only view of the campaign's performance, shared by the administrator.
+                This is a read-only view of the campaign's performance, shared
+                by the administrator.
               </p>
             </CardContent>
           </Card>
         )}
 
         <div className="mb-8">
-<<<<<<< HEAD
-            <CampaignSummary posts={filteredAndSortedPosts} />
-=======
-          <CampaignSummary posts={posts} />
->>>>>>> fbb20c6 (Track Post and Share Campaign)
+          <CampaignSummary posts={filteredAndSortedPosts} />
         </div>
 
-        <div className={`grid gap-8 ${isReadOnly ? 'grid-cols-1' : 'lg:grid-cols-3'}`}>
-          <div className={isReadOnly ? 'col-span-1' : 'lg:col-span-2'}>
+        <div
+          className={`grid gap-8 ${
+            isReadOnly ? "grid-cols-1" : "lg:grid-cols-3"
+          }`}
+        >
+          <div className={isReadOnly ? "col-span-1" : "lg:col-span-2"}>
             <FilterControls filters={filters} setFilters={setFilters} />
             <PostGrid posts={filteredAndSortedPosts} />
           </div>
           {!isReadOnly && (
             <div className="lg:col-span-1">
-              <AddPostForm 
-                campaignId={campaignId}
-                onPostAdded={refreshPosts} 
-              />
+              <AddPostForm campaignId={campaignId} onPostAdded={refreshPosts} />
             </div>
           )}
         </div>
