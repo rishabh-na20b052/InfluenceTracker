@@ -7,7 +7,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // --- THIS IS THE CORRECTED LINE ---
 // The 'npm:' specifier is the most reliable way to import modules in Supabase Functions.
 // This resolves the "worker boot error" that occurs during scheduled runs.
-import { ApifyClient } from "npm:apify-client@2.9";
 
 // Types for better type safety
 interface PostMetrics {
@@ -32,7 +31,7 @@ Deno.serve(async (_req: Request) => {
 
     if (!supabaseUrl || !supabaseServiceKey) {
       throw new Error(
-        "Missing required environment variables: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY"
+        "Missing required environment variables: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY",
       );
     }
 
@@ -45,15 +44,16 @@ Deno.serve(async (_req: Request) => {
       .from("posts")
       .select("id, post_url, platform");
 
-    if (fetchError)
+    if (fetchError) {
       throw new Error(`Supabase fetch error: ${fetchError.message}`);
+    }
     if (!posts || posts.length === 0) {
       return new Response(
         JSON.stringify({ message: "No posts found to update." }),
         {
           headers: { "Content-Type": "application/json" },
           status: 200,
-        }
+        },
       );
     }
 
@@ -76,7 +76,7 @@ Deno.serve(async (_req: Request) => {
             break;
           default:
             console.warn(
-              `Unsupported platform for post ${post.id}: ${post.platform}`
+              `Unsupported platform for post ${post.id}: ${post.platform}`,
             );
             return; // Skip this post
         }
@@ -90,18 +90,19 @@ Deno.serve(async (_req: Request) => {
 
           if (updateError) {
             throw new Error(
-              `Failed to update DB for post ${post.id}: ${updateError.message}`
+              `Failed to update DB for post ${post.id}: ${updateError.message}`,
             );
           }
           console.log(`Successfully updated post: ${post.id}`);
         }
       } catch (error) {
         // Log an error for a single failed post but don't stop the whole process.
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
+        const errorMessage = error instanceof Error
+          ? error.message
+          : "Unknown error";
         console.error(
           `Skipping post ${post.id} (${post.post_url}) due to error:`,
-          errorMessage
+          errorMessage,
         );
       }
     });
@@ -116,11 +117,12 @@ Deno.serve(async (_req: Request) => {
       {
         headers: { "Content-Type": "application/json" },
         status: 200,
-      }
+      },
     );
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+    const errorMessage = error instanceof Error
+      ? error.message
+      : "Unknown error";
     console.error("A fatal error occurred:", errorMessage);
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { "Content-Type": "application/json" },
@@ -147,7 +149,8 @@ async function getYoutubeMetrics(url: string): Promise<PostMetrics> {
       return { views: 0, likes: 0, comments: 0 };
     }
 
-    const endpoint = `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${videoId}&key=${YOUTUBE_API_KEY}`;
+    const endpoint =
+      `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${videoId}&key=${YOUTUBE_API_KEY}`;
     const response = await fetch(endpoint);
 
     if (!response.ok) {
@@ -172,7 +175,7 @@ async function getYoutubeMetrics(url: string): Promise<PostMetrics> {
   } catch (error) {
     console.warn(
       "YouTube metrics fetch failed, using fallback:",
-      error instanceof Error ? error.message : "Unknown error"
+      error instanceof Error ? error.message : "Unknown error",
     );
     return { views: 0, likes: 0, comments: 0 };
   }
@@ -199,7 +202,8 @@ async function getXMetrics(url: string): Promise<PostMetrics> {
     }
 
     // Updated endpoint with proper fields
-    const endpoint = `https://api.twitter.com/2/tweets/${tweetId}?tweet.fields=public_metrics,created_at,author_id&expansions=author_id&user.fields=username`;
+    const endpoint =
+      `https://api.twitter.com/2/tweets/${tweetId}?tweet.fields=public_metrics,created_at,author_id&expansions=author_id&user.fields=username`;
     console.log(`Making API call to: ${endpoint}`);
 
     const response = await fetch(endpoint, {
@@ -223,7 +227,7 @@ async function getXMetrics(url: string): Promise<PostMetrics> {
         errorText.includes("Rate limit exceeded")
       ) {
         console.warn(
-          `Twitter API rate limit reached, skipping update for this post`
+          `Twitter API rate limit reached, skipping update for this post`,
         );
         return { views: 0, likes: 0, comments: 0, shares: 0 };
       }
@@ -231,12 +235,12 @@ async function getXMetrics(url: string): Promise<PostMetrics> {
       // Handle authentication errors
       if (response.status === 401 || errorText.includes("Unauthorized")) {
         console.error(
-          "Twitter API authentication failed - check X_BEARER_TOKEN"
+          "Twitter API authentication failed - check X_BEARER_TOKEN",
         );
       }
 
       console.warn(
-        `X API Error (${response.status}): ${errorText}, using fallback metrics`
+        `X API Error (${response.status}): ${errorText}, using fallback metrics`,
       );
       return { views: 0, likes: 0, comments: 0, shares: 0 };
     }
@@ -246,7 +250,7 @@ async function getXMetrics(url: string): Promise<PostMetrics> {
 
     if (!result.data) {
       console.warn(
-        "Could not find data for this tweet, using fallback metrics"
+        "Could not find data for this tweet, using fallback metrics",
       );
       return { views: 0, likes: 0, comments: 0, shares: 0 };
     }
@@ -262,8 +266,7 @@ async function getXMetrics(url: string): Promise<PostMetrics> {
       views: Number(views) || 0,
       likes: Number(metrics.like_count) || 0,
       comments: Number(metrics.reply_count) || 0,
-      shares:
-        (Number(metrics.retweet_count) || 0) +
+      shares: (Number(metrics.retweet_count) || 0) +
         (Number(metrics.quote_count) || 0),
     };
 
@@ -272,7 +275,7 @@ async function getXMetrics(url: string): Promise<PostMetrics> {
   } catch (error) {
     console.error(
       "X/Twitter metrics fetch failed:",
-      error instanceof Error ? error.message : "Unknown error"
+      error instanceof Error ? error.message : "Unknown error",
     );
     return { views: 0, likes: 0, comments: 0, shares: 0 };
   }
@@ -281,44 +284,103 @@ async function getXMetrics(url: string): Promise<PostMetrics> {
 async function getInstagramMetrics(url: string): Promise<PostMetrics> {
   try {
     const APIFY_API_TOKEN = Deno.env.get("APIFY_API_TOKEN");
-    const INSTAGRAM_SESSION_ID = Deno.env.get("INSTAGRAM_SESSION_ID");
 
-    if (!APIFY_API_TOKEN || !INSTAGRAM_SESSION_ID) {
+    if (!APIFY_API_TOKEN) {
       console.warn(
-        "APIFY_API_TOKEN or INSTAGRAM_SESSION_ID not set, using fallback metrics"
+        "APIFY_API_TOKEN not set, using fallback metrics",
       );
       return { views: 0, likes: 0, comments: 0 };
     }
 
-    const client = new ApifyClient({ token: APIFY_API_TOKEN });
-    const runInput = {
-      directUrls: [url],
-      resultsLimit: 1,
-      sessionConfig: {
-        sessionCookies: [{ name: "sessionid", value: INSTAGRAM_SESSION_ID }],
+    console.log("Starting Instagram scraper for URL:", url);
+
+    // Extract username from URL for Apify
+    const usernameMatch = url.match(/instagram\.com\/([^\/]+)/);
+    const username = usernameMatch ? usernameMatch[1] : null;
+
+    if (!username) {
+      console.warn(
+        "Could not extract username from URL, using fallback metrics",
+      );
+      return { views: 0, likes: 0, comments: 0 };
+    }
+
+    // Use the Instagram Post Scraper with username (same as API route)
+    const response = await fetch(
+      `https://api.apify.com/v2/acts/apify~instagram-post-scraper/run-sync-get-dataset-items?token=${APIFY_API_TOKEN}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: username,
+          resultsType: "posts",
+          resultsLimit: 10,
+          includeVideoThumbnails: true,
+          includeLocationInfo: false,
+          includeHashtags: false,
+          includeComments: false,
+        }),
       },
-    };
+    );
 
-    const run = await client.actor("apify/instagram-scraper").call(runInput);
-    const { items } = await client.dataset(run.defaultDatasetId).listItems();
+    console.log("Instagram scraper response status:", response.status);
 
-    if (!items || items.length === 0) {
-      console.warn(
-        "Apify did not return any data for this Instagram URL, using fallback metrics"
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        `Instagram scraper API error: ${response.status} ${errorText}`,
       );
       return { views: 0, likes: 0, comments: 0 };
     }
 
-    const post = items[0];
-    return {
-      views: Number(post.playCount || post.videoViewCount || 0),
-      likes: Number(post.likesCount || 0),
-      comments: Number(post.commentsCount || 0),
+    const data = await response.json();
+    console.log(
+      "Instagram scraper raw response:",
+      JSON.stringify(data, null, 2),
+    );
+
+    if (!data || data.length === 0) {
+      console.warn(
+        "Apify did not return any data for this Instagram URL, using fallback metrics",
+      );
+      return { views: 0, likes: 0, comments: 0 };
+    }
+
+    // Find the specific post by matching the URL
+    const postId = url.match(/\/p\/([^\/]+)/)?.[1];
+    let post = null;
+
+    if (postId) {
+      // Try to find the exact post by shortcode
+      post = data.find((p) =>
+        p.shortcode === postId ||
+        p.url?.includes(postId) ||
+        p.id === postId
+      );
+    }
+
+    // If not found, use the first post
+    if (!post) {
+      post = data[0];
+    }
+
+    const metrics = {
+      views: Number(
+        post.videoViewCount || post.viewCount || post.playCount || post.views ||
+          0,
+      ),
+      likes: Number(post.likesCount || post.likeCount || post.likes || 0),
+      comments: Number(
+        post.commentsCount || post.commentCount || post.comments || 0,
+      ),
     };
+
+    console.log("Successfully extracted Instagram metrics:", metrics);
+    return metrics;
   } catch (error) {
     console.warn(
       "Instagram metrics fetch failed, using fallback:",
-      error instanceof Error ? error.message : "Unknown error"
+      error instanceof Error ? error.message : "Unknown error",
     );
     return { views: 0, likes: 0, comments: 0 };
   }
