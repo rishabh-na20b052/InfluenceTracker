@@ -70,9 +70,7 @@ export default function ShareCampaignDialog({
       toast({
         title: "Share Link Created!",
         description: `Read-only link copied to clipboard. ${
-          customDate
-            ? `Expires on ${format(customDate, "PPP")}`
-            : "Never expires"
+          customDate ? `Expires on ${format(customDate, "PPP")}` : "Never expires"
         }`,
       });
 
