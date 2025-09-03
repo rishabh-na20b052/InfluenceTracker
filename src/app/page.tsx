@@ -21,6 +21,7 @@ import {
   Calendar,
   Award,
   Share2,
+  Trash2,
 } from "lucide-react";
 import type { Campaign } from "@/lib/types";
 import AddCampaignDialog from "@/components/dashboard/add-campaign-dialog";
@@ -31,6 +32,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getImageWithFallback } from "@/lib/image-utils";
 import ThemeCreator from "@/components/theme-creator";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -123,6 +135,42 @@ export default function CampaignsPage() {
         variant: "destructive",
         title: "Failed to create campaign",
         description: e?.message || "Unknown error",
+      });
+    }
+  };
+
+  const handleDeleteCampaign = async (campaignId: string) => {
+    try {
+      const response = await fetch(`/api/campaigns/${campaignId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setCampaigns(
+          campaigns.filter((campaign) => campaign.id !== campaignId)
+        );
+        setCampaignPostCounts((prev) => {
+          const newCounts = { ...prev };
+          delete newCounts[campaignId];
+          return newCounts;
+        });
+        toast({
+          title: "Success",
+          description: "Campaign deleted successfully",
+        });
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Error",
+          description: errorData.error || "Failed to delete campaign",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete campaign",
+        variant: "destructive",
       });
     }
   };
@@ -289,9 +337,48 @@ export default function CampaignsPage() {
                       />
                     </div>
                     <div className="p-6">
-                      <CardTitle className="font-headline text-xl">
-                        {campaign.name}
-                      </CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="font-headline text-xl">
+                          {campaign.name}
+                        </CardTitle>
+                        {!isReadOnly && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                              >
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Delete Campaign
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "
+                                  {campaign.name}"? This will also delete all
+                                  associated posts. This action cannot be
+                                  undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() =>
+                                    handleDeleteCampaign(campaign.id)
+                                  }
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="flex-grow p-6 pt-0">

@@ -37,6 +37,23 @@ export default function DashboardClient({
   campaignId,
   isReadOnly,
 }: DashboardClientProps) {
+  // Defensive programming: ensure we have valid props
+  if (!campaignName || !campaignId) {
+    console.error("DashboardClient: Missing required props", {
+      campaignName,
+      campaignId,
+    });
+    return (
+      <div className="min-h-screen w-full bg-background flex items-center justify-center">
+        <div className="text-center p-8">
+          <h1 className="text-2xl font-bold mb-4">Invalid Campaign Data</h1>
+          <p className="text-muted-foreground">
+            The campaign data is missing or invalid. Please try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [filters, setFilters] = useState<Filters>({
     platform: "all",
@@ -52,10 +69,19 @@ export default function DashboardClient({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch posts");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error || `HTTP ${response.status}: Failed to fetch posts`
+        );
       }
 
       const data = await response.json();
+
+      // Validate response structure
+      if (!data || typeof data !== "object") {
+        throw new Error("Invalid response format from server");
+      }
+
       const mappedPosts: Post[] = (data.posts || []).map((p: any) => ({
         id: p.id,
         campaignId: p.campaign_id,
@@ -79,12 +105,18 @@ export default function DashboardClient({
       }));
       setPosts(mappedPosts);
     } catch (error) {
+      console.error("Error refreshing posts:", error);
       toast({
         variant: "destructive",
         title: "Error Fetching Posts",
-        description: error instanceof Error ? error.message : "Unknown error",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
       });
     }
+  };
+
+  const handleDeletePost = (postId: string) => {
+    setPosts(posts.filter((post) => post.id !== postId));
   };
 
   const filteredAndSortedPosts = useMemo(() => {
@@ -162,7 +194,10 @@ export default function DashboardClient({
         >
           <div className={isReadOnly ? "col-span-1" : "lg:col-span-2"}>
             <FilterControls filters={filters} setFilters={setFilters} />
-            <PostGrid posts={filteredAndSortedPosts} />
+            <PostGrid
+              posts={filteredAndSortedPosts}
+              onDeletePost={!isReadOnly ? handleDeletePost : undefined}
+            />
           </div>
           {!isReadOnly && (
             <div className="lg:col-span-1">
