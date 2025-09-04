@@ -15,13 +15,28 @@ import {
   MessageCircle,
   Eye,
   Repeat,
+  Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { getImageWithFallback } from "@/lib/image-utils";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 type PostCardProps = {
   post: Post;
+  onDelete?: (postId: string) => void;
 };
 
 const platformIcons = {
@@ -40,10 +55,42 @@ function formatNumber(num: number): string {
   return num.toString();
 }
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post, onDelete }: PostCardProps) {
   const postDate = new Date(post.date);
   // To avoid hydration errors, we'll format the date in UTC.
   const zonedDate = toZonedTime(postDate, "Etc/UTC");
+  const { toast } = useToast();
+
+  const handleDelete = async () => {
+    if (!onDelete) return;
+
+    try {
+      const response = await fetch(`/api/posts/${post.id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Post deleted successfully",
+        });
+        onDelete(post.id);
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Error",
+          description: errorData.error || "Failed to delete post",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete post",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <Card className="overflow-hidden flex flex-col transition-all hover:shadow-lg hover:-translate-y-1">
@@ -54,8 +101,37 @@ export default function PostCard({ post }: PostCardProps) {
             {post.influencerHandle}
           </CardTitle>
         </div>
-        <div className="text-xs text-muted-foreground">
-          {format(zonedDate, "dd MMM yyyy")}
+        <div className="flex items-center gap-2">
+          <div className="text-xs text-muted-foreground">
+            {format(zonedDate, "dd MMM yyyy")}
+          </div>
+          {onDelete && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  <Trash2 className="h-3 w-3 text-red-500" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Post</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete this post? This action
+                    cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
       </CardHeader>
       <CardContent className="p-0">

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -7,68 +8,68 @@ export async function POST(req: NextRequest) {
     if (!campaignId) {
       return NextResponse.json(
         { error: "Campaign ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const SUPABASE_URL =
-      process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-    const SERVICE_ROLE_KEY =
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
-    const ADMIN_USER_ID = process.env.ADMIN_USER_ID;
+    // Create authenticated Supabase client
+    const supabase = await createClient();
 
-    if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+    // Get the authenticated user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
       return NextResponse.json(
-        { error: "Supabase environment variables are not configured" },
-        { status: 500 }
+        { error: "Authentication required" },
+        { status: 401 },
       );
     }
 
-    if (!ADMIN_USER_ID) {
+    // Verify the user owns the campaign
+    const { data: campaign, error: campaignError } = await supabase
+      .from("campaigns")
+      .select("id")
+      .eq("id", campaignId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (campaignError || !campaign) {
       return NextResponse.json(
-        { error: "ADMIN_USER_ID is not configured" },
-        { status: 500 }
+        { error: "Campaign not found or access denied" },
+        { status: 404 },
       );
     }
 
-    // Create share record directly
-    const shareData = {
-      campaign_id: campaignId,
-      user_id: ADMIN_USER_ID,
-      expires_at: expiresAt || null,
-    };
+    // Create share record using the authenticated user
+    const { data: shareData, error: shareError } = await supabase
+      .from("campaign_shares")
+      .insert({
+        campaign_id: campaignId,
+        user_id: user.id,
+        expires_at: expiresAt || null,
+      })
+      .select("id")
+      .single();
 
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/campaign_shares`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SERVICE_ROLE_KEY,
-        Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
-        Prefer: "return=representation",
-      },
-      body: JSON.stringify(shareData),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Share creation error:", errorText);
+    if (shareError) {
+      console.error("Share creation error:", shareError);
       return NextResponse.json(
         { error: "Failed to create share link" },
-        { status: response.status }
+        { status: 500 },
       );
     }
 
-    const result = await response.json();
-    const shareId = result[0]?.id;
-
-    if (!shareId) {
+    if (!shareData?.id) {
       return NextResponse.json(
         { error: "Failed to get share ID" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
-    return NextResponse.json({ shareId }, { status: 201 });
+    return NextResponse.json({ shareId: shareData.id }, { status: 201 });
   } catch (error) {
     console.error("Share creation error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";

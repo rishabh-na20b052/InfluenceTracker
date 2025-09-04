@@ -3,9 +3,10 @@ import PostCard from "./post-card";
 
 type PostGridProps = {
   posts: Post[];
+  onDeletePost?: (postId: string) => void;
 };
 
-export default function PostGrid({ posts }: PostGridProps) {
+export default function PostGrid({ posts, onDeletePost }: PostGridProps) {
   if (posts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed shadow-sm h-96">
@@ -22,7 +23,7 @@ export default function PostGrid({ posts }: PostGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <PostCard key={post.id} post={post} onDelete={onDeletePost} />
       ))}
     </div>
   );

@@ -1,7 +1,8 @@
 // app/api/posts/route.ts
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { ApifyClient } from "apify-client";
+import { getUserId } from "@/lib/auth";
 
 // Helper to determine platform from URL
 function getPlatformFromUrl(
@@ -222,7 +223,16 @@ async function fetchPostMetadata(url: string, platform: string) {
   return metadata;
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Get authenticated user
+  const userId = await getUserId(request);
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Authentication required" },
+      { status: 401 },
+    );
+  }
+
   const { campaignId, postUrl } = await request.json();
 
   const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -252,9 +262,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Check if campaign exists
+    // Check if campaign exists and belongs to the authenticated user
     const campaignCheck = await fetch(
-      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${campaignId}&select=id`,
+      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${campaignId}&user_id=eq.${userId}&select=id`,
       {
         headers: {
           apikey: SERVICE_ROLE_KEY,
@@ -265,6 +275,15 @@ export async function POST(request: Request) {
 
     if (!campaignCheck.ok) {
       return NextResponse.json({ error: "Campaign not found." }, {
+        status: 404,
+      });
+    }
+
+    const campaigns = await campaignCheck.json();
+    if (!campaigns || campaigns.length === 0) {
+      return NextResponse.json({
+        error: "Campaign not found or access denied.",
+      }, {
         status: 404,
       });
     }

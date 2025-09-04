@@ -21,6 +21,7 @@ import {
   Calendar,
   Award,
   Share2,
+  Trash2,
 } from "lucide-react";
 import type { Campaign } from "@/lib/types";
 import AddCampaignDialog from "@/components/dashboard/add-campaign-dialog";
@@ -31,6 +32,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getImageWithFallback } from "@/lib/image-utils";
 import ThemeCreator from "@/components/theme-creator";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -39,6 +52,19 @@ export default function CampaignsPage() {
   >({});
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  // Try to get auth context, but handle the case where it might not be available (shared links)
+  let user = null;
+  let authLoading = false;
+  try {
+    const auth = useAuth();
+    user = auth.user;
+    authLoading = auth.loading;
+  } catch (error) {
+    // Auth context not available (e.g., for shared links)
+    user = null;
+    authLoading = false;
+  }
 
   // Check if we're in read-only mode
   const isReadOnly =
@@ -54,37 +80,75 @@ export default function CampaignsPage() {
     });
   };
 
-  useEffect(() => {
-    (async () => {
+  const fetchCampaigns = async () => {
+    try {
+      const res = await fetch("/api/campaigns", {
+        cache: "no-store",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to load campaigns");
+      const mapped: Campaign[] = (data.campaigns || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        description: c.description || "",
+        coverImageUrl:
+          c.cover_image_url ||
+          getImageWithFallback("/assets/campaign_dp1.webp", "campaign"),
+        postIds: [], // Keep empty for compatibility
+      }));
+
+      // Store post counts separately
+      const counts: Record<string, number> = {};
+      (data.campaigns || []).forEach((c: any) => {
+        counts[c.id] = c.posts?.[0]?.count || 0;
+      });
+
+      setCampaigns(mapped);
+      setCampaignPostCounts(counts);
+
+      // Cache the fresh data
       try {
-        const res = await fetch("/api/campaigns", { cache: "no-store" });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || "Failed to load campaigns");
-        const mapped: Campaign[] = (data.campaigns || []).map((c: any) => ({
-          id: c.id,
-          name: c.name,
-          description: c.description || "",
-          coverImageUrl:
-            c.cover_image_url ||
-            getImageWithFallback("/assets/campaign_dp1.webp", "campaign"),
-          postIds: [], // Keep empty for compatibility
-        }));
-
-        // Store post counts separately
-        const counts: Record<string, number> = {};
-        (data.campaigns || []).forEach((c: any) => {
-          counts[c.id] = c.posts?.[0]?.count || 0;
-        });
-
-        setCampaigns(mapped);
-        setCampaignPostCounts(counts);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
+        localStorage.setItem("campaigns", JSON.stringify(mapped));
+        localStorage.setItem("campaignPostCounts", JSON.stringify(counts));
+      } catch (error) {
+        console.warn("Failed to cache data:", error);
       }
-    })();
-  }, []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (authLoading) return; // Wait for auth to load
+
+    // Try to load cached data first for faster initial render
+    const loadCachedData = () => {
+      try {
+        const cachedCampaigns = localStorage.getItem("campaigns");
+        const cachedCounts = localStorage.getItem("campaignPostCounts");
+
+        if (cachedCampaigns) {
+          setCampaigns(JSON.parse(cachedCampaigns));
+        }
+        if (cachedCounts) {
+          setCampaignPostCounts(JSON.parse(cachedCounts));
+        }
+      } catch (error) {
+        console.warn("Failed to load cached data:", error);
+      }
+    };
+
+    // Load cached data immediately
+    loadCachedData();
+
+    // Then fetch fresh data
+    fetchCampaigns();
+  }, [authLoading]);
+
+  // Note: Removed visibility change listener to prevent navigation issues
+  // The localStorage caching provides sufficient state persistence
 
   const handleAddCampaign = async (newCampaign: {
     id: string;
@@ -96,7 +160,9 @@ export default function CampaignsPage() {
     try {
       const res = await fetch("/api/campaigns", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           name: newCampaign.name,
           description: newCampaign.description,
@@ -117,6 +183,20 @@ export default function CampaignsPage() {
       };
       setCampaigns((prev) => [mapped, ...prev]);
       setCampaignPostCounts((prev) => ({ ...prev, [mapped.id]: 0 })); // New campaign starts with 0 posts
+
+      // Update cache
+      try {
+        const updatedCampaigns = [mapped, ...campaigns];
+        const updatedCounts = { ...campaignPostCounts, [mapped.id]: 0 };
+        localStorage.setItem("campaigns", JSON.stringify(updatedCampaigns));
+        localStorage.setItem(
+          "campaignPostCounts",
+          JSON.stringify(updatedCounts)
+        );
+      } catch (error) {
+        console.warn("Failed to update cache:", error);
+      }
+
       toast({ title: "Campaign created", description: mapped.name });
     } catch (e: any) {
       toast({
@@ -126,6 +206,83 @@ export default function CampaignsPage() {
       });
     }
   };
+
+  const handleDeleteCampaign = async (campaignId: string) => {
+    try {
+      const response = await fetch(`/api/campaigns/${campaignId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        const updatedCampaigns = campaigns.filter(
+          (campaign) => campaign.id !== campaignId
+        );
+        const updatedCounts = { ...campaignPostCounts };
+        delete updatedCounts[campaignId];
+
+        setCampaigns(updatedCampaigns);
+        setCampaignPostCounts(updatedCounts);
+
+        // Update cache
+        try {
+          localStorage.setItem("campaigns", JSON.stringify(updatedCampaigns));
+          localStorage.setItem(
+            "campaignPostCounts",
+            JSON.stringify(updatedCounts)
+          );
+        } catch (error) {
+          console.warn("Failed to update cache:", error);
+        }
+
+        toast({
+          title: "Success",
+          description: "Campaign deleted successfully",
+        });
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Error",
+          description: errorData.error || "Failed to delete campaign",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete campaign",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Show loading state while auth is loading
+  if (authLoading) {
+    return (
+      <div className="min-h-screen w-full bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to login if not authenticated
+  if (!user && !isReadOnly) {
+    return (
+      <div className="min-h-screen w-full bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Authentication Required</h1>
+          <p className="text-muted-foreground mb-6">
+            Please log in to access your dashboard.
+          </p>
+          <a href="/auth/login">
+            <Button>Go to Login</Button>
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-background">
@@ -202,12 +359,10 @@ export default function CampaignsPage() {
                 <div className="flex gap-4 pt-4">
                   {!isReadOnly && (
                     <>
-                      <Link href="/profile" passHref>
-                        <Button variant="outline" className="gap-2">
-                          <Edit className="h-4 w-4" />
-                          Edit Profile
-                        </Button>
-                      </Link>
+                      <Button variant="outline" className="gap-2">
+                        <Edit className="h-4 w-4" />
+                        Edit Profile
+                      </Button>
                       <Button className="gap-2">
                         <Mail className="h-4 w-4" />
                         Contact Me
@@ -289,9 +444,48 @@ export default function CampaignsPage() {
                       />
                     </div>
                     <div className="p-6">
-                      <CardTitle className="font-headline text-xl">
-                        {campaign.name}
-                      </CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="font-headline text-xl">
+                          {campaign.name}
+                        </CardTitle>
+                        {!isReadOnly && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                              >
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Delete Campaign
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "
+                                  {campaign.name}"? This will also delete all
+                                  associated posts. This action cannot be
+                                  undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() =>
+                                    handleDeleteCampaign(campaign.id)
+                                  }
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="flex-grow p-6 pt-0">
@@ -318,11 +512,11 @@ export default function CampaignsPage() {
               ))}
         </div>
 
+        {/* Appearance Section - Commented out for now
         {!isReadOnly && (
           <>
             <Separator className="my-12" />
 
-            {/* Appearance Section */}
             <Card className="p-8 bg-card/50">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold font-headline">Appearance</h2>
@@ -332,7 +526,6 @@ export default function CampaignsPage() {
               </div>
 
               <div className="space-y-8">
-                {/* Quick Theme Switcher */}
                 <div className="text-center">
                   <h3 className="text-lg font-semibold mb-4">Quick Themes</h3>
                   <ThemeSwitcher />
@@ -340,12 +533,12 @@ export default function CampaignsPage() {
 
                 <Separator />
 
-                {/* Custom Theme Creator */}
                 <ThemeCreator />
               </div>
             </Card>
           </>
         )}
+        */}
       </main>
     </div>
   );

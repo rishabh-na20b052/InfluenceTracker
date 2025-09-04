@@ -17,6 +17,7 @@ import ShareCampaignDialog from "./share-campaign-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Card, CardContent } from "../ui/card";
 import { getImageWithFallback } from "@/lib/image-utils";
+import { createClient } from "@/lib/supabase/client";
 
 type Filters = {
   platform: "all" | Platform;
@@ -37,6 +38,23 @@ export default function DashboardClient({
   campaignId,
   isReadOnly,
 }: DashboardClientProps) {
+  // Defensive programming: ensure we have valid props
+  if (!campaignName || !campaignId) {
+    console.error("DashboardClient: Missing required props", {
+      campaignName,
+      campaignId,
+    });
+    return (
+      <div className="min-h-screen w-full bg-background flex items-center justify-center">
+        <div className="text-center p-8">
+          <h1 className="text-2xl font-bold mb-4">Invalid Campaign Data</h1>
+          <p className="text-muted-foreground">
+            The campaign data is missing or invalid. Please try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [filters, setFilters] = useState<Filters>({
     platform: "all",
@@ -46,16 +64,43 @@ export default function DashboardClient({
   const { toast } = useToast();
 
   const refreshPosts = async () => {
+    // Don't allow refreshing posts in readonly mode
+    if (isReadOnly) {
+      return;
+    }
+
     try {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      // If no session, don't try to refresh
+      if (!session) {
+        return;
+      }
+
       const response = await fetch(`/api/campaigns/${campaignId}/posts`, {
         cache: "no-store",
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch posts");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error || `HTTP ${response.status}: Failed to fetch posts`
+        );
       }
 
       const data = await response.json();
+
+      // Validate response structure
+      if (!data || typeof data !== "object") {
+        throw new Error("Invalid response format from server");
+      }
+
       const mappedPosts: Post[] = (data.posts || []).map((p: any) => ({
         id: p.id,
         campaignId: p.campaign_id,
@@ -79,18 +124,35 @@ export default function DashboardClient({
       }));
       setPosts(mappedPosts);
     } catch (error) {
+      console.error("Error refreshing posts:", error);
       toast({
         variant: "destructive",
         title: "Error Fetching Posts",
-        description: error instanceof Error ? error.message : "Unknown error",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
       });
     }
+  };
+
+  const handleDeletePost = (postId: string) => {
+    setPosts(posts.filter((post) => post.id !== postId));
   };
 
   const filteredAndSortedPosts = useMemo(() => {
     return posts
       .filter((post) => {
-        return filters.platform === "all" || post.platform === filters.platform;
+        if (filters.platform === "all") return true;
+
+        // Map filter values to post platform values
+        const platformMap: Record<string, string> = {
+          instagram: "Instagram",
+          youtube: "YouTube",
+          x: "Twitter",
+        };
+
+        const expectedPlatform =
+          platformMap[filters.platform] || filters.platform;
+        return post.platform === expectedPlatform;
       })
       .sort((a, b) => {
         let valA, valB;
@@ -161,8 +223,15 @@ export default function DashboardClient({
           }`}
         >
           <div className={isReadOnly ? "col-span-1" : "lg:col-span-2"}>
-            <FilterControls filters={filters} setFilters={setFilters} />
-            <PostGrid posts={filteredAndSortedPosts} />
+            <FilterControls
+              filters={filters}
+              setFilters={setFilters}
+              disabled={false}
+            />
+            <PostGrid
+              posts={filteredAndSortedPosts}
+              onDeletePost={!isReadOnly ? handleDeletePost : undefined}
+            />
           </div>
           {!isReadOnly && (
             <div className="lg:col-span-1">

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getUserId } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
@@ -6,6 +7,15 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+
+    // Get authenticated user
+    const userId = await getUserId(request);
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      );
+    }
 
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ||
       process.env.SUPABASE_URL;
@@ -17,6 +27,32 @@ export async function GET(
         { error: "Supabase environment variables are not configured" },
         { status: 500 },
       );
+    }
+
+    // First, verify the campaign belongs to the authenticated user
+    const campaignCheck = await fetch(
+      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${id}&user_id=eq.${userId}&select=id`,
+      {
+        headers: {
+          apikey: SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+        },
+      },
+    );
+
+    if (!campaignCheck.ok) {
+      return NextResponse.json({ error: "Campaign not found." }, {
+        status: 404,
+      });
+    }
+
+    const campaigns = await campaignCheck.json();
+    if (!campaigns || campaigns.length === 0) {
+      return NextResponse.json({
+        error: "Campaign not found or access denied.",
+      }, {
+        status: 404,
+      });
     }
 
     // Fetch posts for the campaign
