@@ -4,7 +4,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { ConditionalAuthProvider } from "@/contexts/conditional-auth-provider";
-import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Codeit influencer Tracker",
@@ -41,11 +40,9 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <Suspense fallback={<div>Loading...</div>}>
-            <ConditionalAuthProvider>
-              <ErrorBoundary>{children}</ErrorBoundary>
-            </ConditionalAuthProvider>
-          </Suspense>
+          <ConditionalAuthProvider>
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </ConditionalAuthProvider>
           <Toaster />
         </ThemeProvider>
       </body>
