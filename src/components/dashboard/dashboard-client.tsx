@@ -17,6 +17,7 @@ import ShareCampaignDialog from "./share-campaign-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Card, CardContent } from "../ui/card";
 import { getImageWithFallback } from "@/lib/image-utils";
+import { createClient } from "@/lib/supabase/client";
 
 type Filters = {
   platform: "all" | Platform;
@@ -63,9 +64,27 @@ export default function DashboardClient({
   const { toast } = useToast();
 
   const refreshPosts = async () => {
+    // Don't allow refreshing posts in readonly mode
+    if (isReadOnly) {
+      return;
+    }
+
     try {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      // If no session, don't try to refresh
+      if (!session) {
+        return;
+      }
+
       const response = await fetch(`/api/campaigns/${campaignId}/posts`, {
         cache: "no-store",
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
       });
 
       if (!response.ok) {
@@ -122,7 +141,18 @@ export default function DashboardClient({
   const filteredAndSortedPosts = useMemo(() => {
     return posts
       .filter((post) => {
-        return filters.platform === "all" || post.platform === filters.platform;
+        if (filters.platform === "all") return true;
+
+        // Map filter values to post platform values
+        const platformMap: Record<string, string> = {
+          instagram: "Instagram",
+          youtube: "YouTube",
+          x: "Twitter",
+        };
+
+        const expectedPlatform =
+          platformMap[filters.platform] || filters.platform;
+        return post.platform === expectedPlatform;
       })
       .sort((a, b) => {
         let valA, valB;
@@ -193,7 +223,11 @@ export default function DashboardClient({
           }`}
         >
           <div className={isReadOnly ? "col-span-1" : "lg:col-span-2"}>
-            <FilterControls filters={filters} setFilters={setFilters} />
+            <FilterControls
+              filters={filters}
+              setFilters={setFilters}
+              disabled={false}
+            />
             <PostGrid
               posts={filteredAndSortedPosts}
               onDeletePost={!isReadOnly ? handleDeletePost : undefined}

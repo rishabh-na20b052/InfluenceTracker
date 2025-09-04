@@ -1,6 +1,7 @@
 import DashboardClient from "@/components/dashboard/dashboard-client";
 import type { Post } from "@/lib/types";
 import { notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 
 interface CampaignContentProps {
   id: string;
@@ -47,18 +48,98 @@ export default async function CampaignContent({
   }
 
   try {
-    // Fetch campaign and posts data from API
-    const [cRes, pRes] = await Promise.all([
-      fetch(`${baseUrl}/api/campaigns/${id}`, { cache: "no-store" }),
-      fetch(`${baseUrl}/api/campaigns/${id}/posts`, { cache: "no-store" }),
-    ]);
+    // Use Supabase client directly instead of API calls
+    const supabase = await createClient();
 
-    if (!cRes.ok) {
+    let campaignResult, postsResult;
+
+    if (isReadOnly) {
+      // For readonly mode, fetch campaign data without user authentication
+      // We'll use the service role key to bypass RLS for shared campaigns
+      const SUPABASE_URL =
+        process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+      const SERVICE_ROLE_KEY =
+        process.env.SUPABASE_SERVICE_ROLE_KEY ||
+        process.env.SUPABASE_SERVICE_KEY;
+
+      if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+        throw new Error("Supabase configuration missing");
+      }
+
+      // Fetch campaign data using service role (bypasses RLS)
+      const campaignResponse = await fetch(
+        `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${encodeURIComponent(id)}`,
+        {
+          headers: {
+            apikey: SERVICE_ROLE_KEY,
+            Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+          },
+          cache: "no-store",
+        }
+      );
+
+      const postsResponse = await fetch(
+        `${SUPABASE_URL}/rest/v1/posts?campaign_id=eq.${encodeURIComponent(
+          id
+        )}&order=created_at.desc`,
+        {
+          headers: {
+            apikey: SERVICE_ROLE_KEY,
+            Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+          },
+          cache: "no-store",
+        }
+      );
+
+      if (!campaignResponse.ok || !postsResponse.ok) {
+        notFound();
+      }
+
+      const campaignData = await campaignResponse.json();
+      const postsData = await postsResponse.json();
+
+      if (!campaignData || campaignData.length === 0) {
+        notFound();
+      }
+
+      campaignResult = { data: campaignData[0], error: null };
+      postsResult = { data: postsData, error: null };
+    } else {
+      // For authenticated users, get the authenticated user
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        notFound();
+      }
+
+      // Fetch campaign and posts data directly from Supabase
+      const [campaignRes, postsRes] = await Promise.all([
+        supabase
+          .from("campaigns")
+          .select("*")
+          .eq("id", id)
+          .eq("user_id", user.id)
+          .single(),
+        supabase
+          .from("posts")
+          .select("*")
+          .eq("campaign_id", id)
+          .order("created_at", { ascending: false }),
+      ]);
+
+      campaignResult = campaignRes;
+      postsResult = postsRes;
+    }
+
+    if (campaignResult.error || !campaignResult.data) {
       notFound();
     }
 
-    const cData = await cRes.json();
-    const pData = await pRes.json();
+    const cData = campaignResult.data;
+    const pData = { posts: postsResult.data || [] };
 
     // Validate campaign data structure
     if (!cData || !cData.name) {

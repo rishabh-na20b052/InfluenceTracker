@@ -1,12 +1,22 @@
 // app/api/campaigns/[id]/route.ts
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getUserId } from "@/lib/auth";
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } },
 ) {
   const { id } = params;
+
+  // Get authenticated user
+  const userId = await getUserId(request);
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Authentication required" },
+      { status: 401 },
+    );
+  }
 
   const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ||
     process.env.SUPABASE_URL;
@@ -27,9 +37,9 @@ export async function GET(
   }
 
   try {
-    // Fetch the campaign from the database
+    // Fetch the campaign from the database, ensuring it belongs to the authenticated user
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${id}&select=*`,
+      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${id}&user_id=eq.${userId}&select=*`,
       {
         headers: {
           apikey: SERVICE_ROLE_KEY,
@@ -46,7 +56,9 @@ export async function GET(
 
     const campaigns = await response.json();
     if (!campaigns || campaigns.length === 0) {
-      return NextResponse.json({ error: "Campaign not found." }, {
+      return NextResponse.json({
+        error: "Campaign not found or access denied.",
+      }, {
         status: 404,
       });
     }
@@ -71,10 +83,19 @@ export async function GET(
 }
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } },
 ) {
   const { id } = params;
+
+  // Get authenticated user
+  const userId = await getUserId(request);
+  if (!userId) {
+    return NextResponse.json(
+      { error: "Authentication required" },
+      { status: 401 },
+    );
+  }
 
   const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ||
     process.env.SUPABASE_URL;
@@ -95,6 +116,32 @@ export async function DELETE(
   }
 
   try {
+    // First, verify the campaign belongs to the authenticated user
+    const verifyResponse = await fetch(
+      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${id}&user_id=eq.${userId}&select=id`,
+      {
+        headers: {
+          apikey: SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+        },
+      },
+    );
+
+    if (!verifyResponse.ok) {
+      return NextResponse.json({ error: "Campaign not found." }, {
+        status: 404,
+      });
+    }
+
+    const campaigns = await verifyResponse.json();
+    if (!campaigns || campaigns.length === 0) {
+      return NextResponse.json({
+        error: "Campaign not found or access denied.",
+      }, {
+        status: 404,
+      });
+    }
+
     // First, delete all posts associated with this campaign
     const deletePostsResponse = await fetch(
       `${SUPABASE_URL}/rest/v1/posts?campaign_id=eq.${id}`,
@@ -116,7 +163,7 @@ export async function DELETE(
 
     // Delete the campaign from the database
     const deleteResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${id}`,
+      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${id}&user_id=eq.${userId}`,
       {
         method: "DELETE",
         headers: {

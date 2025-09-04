@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { ConditionalAuthProvider } from "@/contexts/conditional-auth-provider";
 
 export const metadata: Metadata = {
   title: "Codeit influencer Tracker",
@@ -35,11 +36,13 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
-          <ErrorBoundary>{children}</ErrorBoundary>
+          <ConditionalAuthProvider>
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </ConditionalAuthProvider>
           <Toaster />
         </ThemeProvider>
       </body>
