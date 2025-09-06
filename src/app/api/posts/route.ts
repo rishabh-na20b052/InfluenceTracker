@@ -262,9 +262,9 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Check if campaign exists and belongs to the authenticated user
+    // Check if campaign exists (company-wide access)
     const campaignCheck = await fetch(
-      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${campaignId}&user_id=eq.${userId}&select=id`,
+      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${campaignId}&select=id`,
       {
         headers: {
           apikey: SERVICE_ROLE_KEY,

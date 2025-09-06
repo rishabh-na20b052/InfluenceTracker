@@ -37,9 +37,9 @@ export async function GET(
   }
 
   try {
-    // Fetch the campaign from the database, ensuring it belongs to the authenticated user
+    // Fetch the campaign from the database (company-wide access)
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${id}&user_id=eq.${userId}&select=*`,
+      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${id}&select=*`,
       {
         headers: {
           apikey: SERVICE_ROLE_KEY,
@@ -116,9 +116,9 @@ export async function DELETE(
   }
 
   try {
-    // First, verify the campaign belongs to the authenticated user
+    // First, verify the campaign exists (company-wide access)
     const verifyResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${id}&user_id=eq.${userId}&select=id`,
+      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${id}&select=id`,
       {
         headers: {
           apikey: SERVICE_ROLE_KEY,
@@ -163,7 +163,7 @@ export async function DELETE(
 
     // Delete the campaign from the database
     const deleteResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${id}&user_id=eq.${userId}`,
+      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${id}`,
       {
         method: "DELETE",
         headers: {

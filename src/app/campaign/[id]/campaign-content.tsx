@@ -115,14 +115,9 @@ export default async function CampaignContent({
         notFound();
       }
 
-      // Fetch campaign and posts data directly from Supabase
+      // Fetch campaign and posts data directly from Supabase (company-wide access)
       const [campaignRes, postsRes] = await Promise.all([
-        supabase
-          .from("campaigns")
-          .select("*")
-          .eq("id", id)
-          .eq("user_id", user.id)
-          .single(),
+        supabase.from("campaigns").select("*").eq("id", id).single(),
         supabase
           .from("posts")
           .select("*")

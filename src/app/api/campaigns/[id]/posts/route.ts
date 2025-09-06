@@ -29,9 +29,9 @@ export async function GET(
       );
     }
 
-    // First, verify the campaign belongs to the authenticated user
+    // First, verify the campaign exists (company-wide access)
     const campaignCheck = await fetch(
-      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${id}&user_id=eq.${userId}&select=id`,
+      `${SUPABASE_URL}/rest/v1/campaigns?id=eq.${id}&select=id`,
       {
         headers: {
           apikey: SERVICE_ROLE_KEY,

@@ -150,60 +150,35 @@ function CampaignsPageContent() {
   // Note: Removed visibility change listener to prevent navigation issues
   // The localStorage caching provides sufficient state persistence
 
-  const handleAddCampaign = async (newCampaign: {
+  const handleAddCampaign = (newCampaign: {
     id: string;
     name: string;
     description: string;
     cover_image_url: string;
     user_id: string;
   }) => {
+    // The campaign was already created by the dialog, just update the UI
+    const mapped: Campaign = {
+      id: newCampaign.id,
+      name: newCampaign.name,
+      description: newCampaign.description || "",
+      coverImageUrl:
+        newCampaign.cover_image_url ||
+        getImageWithFallback("/assets/campaign_dp1.webp", "campaign"),
+      postIds: [],
+    };
+
+    setCampaigns((prev) => [mapped, ...prev]);
+    setCampaignPostCounts((prev) => ({ ...prev, [mapped.id]: 0 })); // New campaign starts with 0 posts
+
+    // Update cache
     try {
-      const res = await fetch("/api/campaigns", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: newCampaign.name,
-          description: newCampaign.description,
-          cover_image_url: newCampaign.cover_image_url,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Failed to create campaign");
-      const c = data.campaign;
-      const mapped: Campaign = {
-        id: c.id,
-        name: c.name,
-        description: c.description || "",
-        coverImageUrl:
-          newCampaign.cover_image_url ||
-          getImageWithFallback("/assets/campaign_dp1.webp", "campaign"),
-        postIds: [],
-      };
-      setCampaigns((prev) => [mapped, ...prev]);
-      setCampaignPostCounts((prev) => ({ ...prev, [mapped.id]: 0 })); // New campaign starts with 0 posts
-
-      // Update cache
-      try {
-        const updatedCampaigns = [mapped, ...campaigns];
-        const updatedCounts = { ...campaignPostCounts, [mapped.id]: 0 };
-        localStorage.setItem("campaigns", JSON.stringify(updatedCampaigns));
-        localStorage.setItem(
-          "campaignPostCounts",
-          JSON.stringify(updatedCounts)
-        );
-      } catch (error) {
-        console.warn("Failed to update cache:", error);
-      }
-
-      toast({ title: "Campaign created", description: mapped.name });
-    } catch (e: any) {
-      toast({
-        variant: "destructive",
-        title: "Failed to create campaign",
-        description: e?.message || "Unknown error",
-      });
+      const updatedCampaigns = [mapped, ...campaigns];
+      const updatedCounts = { ...campaignPostCounts, [mapped.id]: 0 };
+      localStorage.setItem("campaigns", JSON.stringify(updatedCampaigns));
+      localStorage.setItem("campaignPostCounts", JSON.stringify(updatedCounts));
+    } catch (error) {
+      console.warn("Failed to update cache:", error);
     }
   };
 

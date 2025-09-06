@@ -23,9 +23,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch campaigns for the authenticated user
+    // Fetch all campaigns (company-wide access)
     const resp = await fetch(
-      `${SUPABASE_URL}/rest/v1/campaigns?user_id=eq.${userId}&select=*,posts(count)`,
+      `${SUPABASE_URL}/rest/v1/campaigns?select=*,posts(count)`,
       {
         headers: {
           apikey: SERVICE_ROLE_KEY,
