@@ -53,11 +53,12 @@ export default function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+          <Avatar className="h-9 w-9 shadow-md">
             <AvatarImage
               src={user.user_metadata?.avatar_url}
               alt={user.email}
+              className="object-cover"
             />
             <AvatarFallback>
               {user.email?.charAt(0).toUpperCase() || (

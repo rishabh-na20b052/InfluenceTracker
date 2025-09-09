@@ -1,24 +1,35 @@
 "use client";
 
-import { Rocket } from "lucide-react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import UserMenu from "@/components/user-menu";
 
 export default function Header() {
-  // Check if we're in readonly mode
-  const isReadOnly =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("view") === "readonly";
+  const [isReadOnly, setIsReadOnly] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const view = new URLSearchParams(window.location.search).get("view");
+      setIsReadOnly(view === "readonly");
+    }
+  }, []);
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-8">
-      <Link href="/" className="flex items-center gap-2">
-        <Rocket className="h-6 w-6 text-primary" />
-        <h1 className="text-xl font-bold font-headline text-foreground">
-          Codeit influencer Tracker
-        </h1>
+      {/* Logo */}
+      <Link href="/" className="flex items-center">
+        <Image
+          src="/assets/Logo for White BG (1).png"
+          alt="DG Avatar Media"
+          width={100}
+          height={100}
+          priority
+          className="object-contain"
+        />
       </Link>
 
+      {/* User Menu (hidden in readonly mode) */}
       {!isReadOnly && (
         <div className="ml-auto">
           <UserMenu />

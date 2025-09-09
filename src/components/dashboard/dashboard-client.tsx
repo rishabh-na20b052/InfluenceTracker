@@ -14,6 +14,7 @@ import AddPostForm from "./add-post-form";
 import FilterControls from "./filter-controls";
 import PostGrid from "./post-grid";
 import ShareCampaignDialog from "./share-campaign-dialog";
+import ProfileSection from "./profile-section";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Card, CardContent } from "../ui/card";
 import { getImageWithFallback } from "@/lib/image-utils";
@@ -171,6 +172,9 @@ export default function DashboardClient({
     <div className="min-h-screen w-full bg-background">
       <Header />
       <main className="p-4 md:p-8">
+        {/* Hero Section - only show in read-only mode */}
+        {isReadOnly && <ProfileSection isReadOnly={true} />}
+
         <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
           <div className="flex items-center gap-4">
             {isReadOnly ? (
@@ -201,17 +205,6 @@ export default function DashboardClient({
             />
           )}
         </div>
-
-        {isReadOnly && (
-          <Card className="mb-8">
-            <CardContent className="p-6">
-              <p className="text-muted-foreground">
-                This is a read-only view of the campaign's performance, shared
-                by the administrator.
-              </p>
-            </CardContent>
-          </Card>
-        )}
 
         <div className="mb-8">
           <CampaignSummary posts={filteredAndSortedPosts} />
