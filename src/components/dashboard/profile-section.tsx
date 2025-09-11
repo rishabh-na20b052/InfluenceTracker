@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 interface ProfileSectionProps {
   isReadOnly?: boolean;
 }
@@ -9,27 +11,40 @@ export default function ProfileSection({
 }: ProfileSectionProps) {
   return (
     <div className="mb-12">
-      <div className="max-w-4xl mx-auto">
-        {/* Header Section */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight font-headline mb-3">
-            Welcome To The DG Board
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-6">
-            Where Your Campaigns Come Alive
-          </p>
+      <div className="grid md:grid-cols-3 gap-8 items-center">
+        {/* Profile Image */}
+        <div className="md:col-span-1 flex justify-center">
+          <div className="relative">
+            <Image
+              src="/assets/logoBlack.png"
+              alt="DG Avatar Media"
+              width={400}
+              height={400}
+              className="rounded-full object-contain w-64 h-64 border-4 border-primary/20 shadow-2xl bg-white"
+              priority
+            />
+          </div>
         </div>
 
-        {/* Description Section */}
-        <div className="prose prose-lg max-w-none text-center">
-          <div className="space-y-4 text-muted-foreground leading-relaxed">
-            <p className="text-base md:text-lg">
+        {/* Profile Info */}
+        <div className="md:col-span-2 space-y-6">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight font-headline mb-2">
+              Welcome To The DG Board
+            </h1>
+            <p className="text-xl text-muted-foreground mb-4">
+              Where Your Campaigns Come Alive
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-lg leading-relaxed text-muted-foreground">
               Every film has a story, and DG Avatar Media - where DG stands for
               Digital Generation - is the BLOCKBUSTER CREW that makes content
               happening, viral and binge-worthy. We're the ones who make sure
               your campaign doesn't just release, IT PREMIERES.
             </p>
-            <p className="text-base md:text-lg">
+            <p className="text-lg leading-relaxed text-muted-foreground">
               DG Avatar Media blends media buying, PR, social storytelling,
               star-studded campaigns, AI-solutions, memes, viral trends and most
               importantly, choreographing them into a narrative that will make

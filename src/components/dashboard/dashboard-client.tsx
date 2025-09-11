@@ -170,7 +170,7 @@ export default function DashboardClient({
 
   return (
     <div className="min-h-screen w-full bg-background">
-      <Header />
+      {!isReadOnly && <Header />}
       <main className="p-4 md:p-8">
         {/* Hero Section - only show in read-only mode */}
         {isReadOnly && <ProfileSection isReadOnly={true} />}
