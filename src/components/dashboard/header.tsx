@@ -20,7 +20,7 @@ export default function Header() {
       {/* Logo */}
       <Link href="/" className="flex items-center">
         <Image
-          src="/assets/Logo for White BG (1).png"
+          src="/assets/logoBlack.png"
           alt="DG Avatar Media"
           width={100}
           height={100}
