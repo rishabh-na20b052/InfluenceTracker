@@ -8,7 +8,7 @@ import { getUserId } from "@/lib/auth";
 function getPlatformFromUrl(
   url: string,
 ): "instagram" | "youtube" | "x" | "unknown" {
-  if (url.match(/instagram\.com\/(p|reel)\//)) return "instagram";
+  if (url.match(/instagram\.com\/(p|reels?)\//)) return "instagram";
   if (url.includes("youtube.com") || url.includes("youtu.be")) return "youtube";
   if (url.includes("x.com") || url.includes("twitter.com")) return "x";
   return "unknown";
@@ -114,7 +114,7 @@ async function fetchPostMetadata(url: string, platform: string) {
 
         if (!process.env.APIFY_API_TOKEN) {
           console.log("APIFY_API_TOKEN not configured, using fallback data");
-          const postId = url.match(/\/p\/([^\/]+)/)?.[1];
+          const postId = url.match(/\/(p|reels?)\/([^\/]+)/)?.[2];
           metadata.username = "Instagram User";
           metadata.thumbnail_url = postId
             ? `https://instagram.com/p/${postId}/media/?size=m`
@@ -129,7 +129,7 @@ async function fetchPostMetadata(url: string, platform: string) {
           console.log(
             "INSTAGRAM_SESSION_ID not configured, using fallback data",
           );
-          const postId = url.match(/\/p\/([^\/]+)/)?.[1];
+          const postId = url.match(/\/(p|reels?)\/([^\/]+)/)?.[2];
           metadata.username = "Instagram User";
           metadata.thumbnail_url = postId
             ? `https://instagram.com/p/${postId}/media/?size=m`
@@ -171,7 +171,7 @@ async function fetchPostMetadata(url: string, platform: string) {
 
           if (!items?.items?.length) {
             console.log("No Instagram data returned, using fallback");
-            const postId = url.match(/\/p\/([^\/]+)/)?.[1];
+            const postId = url.match(/\/(p|reels?)\/([^\/]+)/)?.[2];
             metadata.username = "Instagram User";
             metadata.thumbnail_url = postId
               ? `https://instagram.com/p/${postId}/media/?size=m`
@@ -205,7 +205,7 @@ async function fetchPostMetadata(url: string, platform: string) {
           console.log("Successfully extracted Instagram metadata:", metadata);
         } catch (error) {
           console.error("Instagram scraper request failed:", error);
-          const postId = url.match(/\/p\/([^\/]+)/)?.[1];
+          const postId = url.match(/\/(p|reels?)\/([^\/]+)/)?.[2];
           metadata.username = "Instagram User";
           metadata.thumbnail_url = postId
             ? `https://instagram.com/p/${postId}/media/?size=m`
@@ -255,6 +255,13 @@ export async function POST(request: NextRequest) {
   }
 
   const platform = getPlatformFromUrl(postUrl);
+  console.log("URL validation - URL:", postUrl);
+  console.log("URL validation - Platform:", platform);
+  console.log(
+    "URL validation - Match result:",
+    postUrl.match(/instagram\.com\/(p|reels?)\//),
+  );
+
   if (platform === "unknown") {
     return NextResponse.json({
       error: "The URL is not a valid Instagram, X, or YouTube post link.",
